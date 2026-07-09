@@ -1,0 +1,111 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.8
+Date: 2025-05-05
+  Changes:
+    - Borders of gleba terrain are less smooth now
+  Bugfixes:
+    - Fixed compatibility for honeycomb fungus when playing with Spaghetorio mod
+    - Fixed some locale typo
+    - Fixed compatibility with factorio 2.0.47 with new gleba decoratives
+---------------------------------------------------------------------------------------------------
+Version: 0.1.7
+Date: 2025-04-18
+  Changes:
+    - Gleba tiles are much more prevalent in the south
+    - New algorithm for spawning yumako and jellynut
+    - Vulcane have a slightly different lava spot size
+  Bugfixes:
+    - Yumako and jellynut plants now will spawn with water disabled
+---------------------------------------------------------------------------------------------------
+Version: 0.1.6
+Date: 2025-03-21
+  Changes:
+    - Ores related to Nauvis will not spawn on ice
+    - Lightning collectors are now hidden from player
+---------------------------------------------------------------------------------------------------
+Version: 0.1.5
+Date: 2025-03-14
+  Changes:
+    - Gleba tiles absorb pollution
+---------------------------------------------------------------------------------------------------
+Version: 0.1.4
+Date: 2025-02-19
+  Modding:
+    - Added space travel flag
+---------------------------------------------------------------------------------------------------
+Version: 0.1.3
+Date: 2025-02-02
+  Bugfixes:
+    - Now the menu simulations are fixed for good
+---------------------------------------------------------------------------------------------------
+Version: 0.1.2
+Date: 2025-01-30
+  Bugfixes:
+    - Removed some menu simulations which could crash the game
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 2025-01-19
+  Bugfixes:
+    - Calcite and Tungsten ore wont spawn on ammonia oceans
+  Modding:
+    - Resource changes to tungsten ore and calcite are now done in data instead of data-final-fixes
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2025-01-19
+  Features:
+    - This version was played from finish through end
+    - Added descriptions to resources
+    - Tungsten ore and calcite now spawn like normal nauvis ores
+  Bugfixes:
+    - Removed startup settings which did not do anything.
+    - Removed small lava patches around the map (or at least the ones that i carefully checked out :))
+---------------------------------------------------------------------------------------------------
+Version: 0.0.9
+Date: 2025-01-18
+  Bugfixes:
+    - Heating tower unlocked after concrete
+    - lithium processing is now unlockable
+---------------------------------------------------------------------------------------------------
+Version: 0.0.8
+Date: 2025-01-15
+  Bugfixes:
+    - Updated holmium graphics with higher contrast.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.7
+Date: 2025-01-14
+  Features:
+    - Asteroid chunks now have stack size of 50
+    - new technology for traveling to solar system edge
+    - removed rail support foundations technology since fulgora does not exist any more
+---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 2025-01-10
+  Bugfixes:
+    - Vulcanic rocks also provide calcite. This is needed for big mining drill
+---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 2025-01-09
+  Bugfixes:
+    - Removed some research triggers that were needed to continue with fulgora items
+    - Updated mod compatibility list
+---------------------------------------------------------------------------------------------------
+Version: 0.0.4
+Date: 2025-01-09
+  Features:
+    - Agriculture technology, calcite processing and tungsten carbide technologies are unlocked earier
+    - Heating tower is unlocked after nuclear power
+---------------------------------------------------------------------------------------------------
+Version: 0.0.3
+Date: 2025-01-07
+  Bugfixes:
+    - Removed vulcanus_enemy_base autoplace control
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 2025-01-07
+  Bugfixes:
+    - Removed some gleba water tiles, since there is no smooth transition towards nauvis water
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2025-01-06
+  Features:
+    - Initial release

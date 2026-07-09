@@ -1,0 +1,36 @@
+Bug fixes:
+  + Romve the small random lava patches - See noise expression offset_vulcano - Check seed 379334167
+  - Add back gleba water (wetland-blue-slime and gleba-deep-lake) and surround them by a land tile such that they do not touch nauvis water. I think without them gleba might have some solid terrain without plants
+  - Show solar system view button in Map view
+
+Config changes
+  + Add setting for enable/disable demolishers (Already done by default)
+  + Add setting for vulcano size
+  + Add setting for vulcano frequenzy
+  + Add space connection from nauvis to solar system edge
+  + Make incompatible with Naufulglebunusilo
+  + Make incompatible with Resource Spawner Overhaul
+  + Add description to settings
+  - Increase coal patch density by factor 2-3
+  - Reduce stone by factor 2-3
+  + change stack stizes of asteroid chunks
+
+Cosmetic changes
+  ? Add promethium as ore
+  + Add holmium ore - make it hard ore
+  + check technology tree
+    + Add Fulguran vault ruins, or unlock recycler by different method 
+    + Unlock holmium processing by mining holmium ore
+  + remove menu simulations
+  + fix surface conditions for recipes
+  - Add vulcanus / gleba cliffs. I think this is not easy to do...
+  - Increase verly slowly but up to inf the moisture towards the south
+  + Remove grass from vulcanus tiles volcanic-folds and volcanic-folds-flat
+  + Restore big patches of trees. See: "also removes big patches of trees on map, but i would like to keep the forests"
+
+Low Prio:
+  + Make that calcite patch behaves like nauvis ore
+  + Make that tungsten ore patch behaves like nauvis ore
+  + remove north_offset and south_offset for aquilo and gleba and replace them for a similar function like starting_island local expression
+  - Add setting for having north and south pole (aquilo at north and gleba at south)
+  + for masks use code like "a > b" instead "if(a > b, 1, 0)"

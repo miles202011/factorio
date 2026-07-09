@@ -1,0 +1,3071 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>斗地主</title>
+  <style>
+    :root {
+      --bg: #191919;
+      --panel: #2d2b2c;
+      --panel-2: #353334;
+      --panel-3: #242324;
+      --line: #777;
+      --text: #e4e4e4;
+      --title: #fff0cf;
+      --muted: #8d8d8d;
+      --green: #67e36c;
+      --yellow: #ffd84d;
+      --red: #ff5757;
+      --blue: #bfe5ff;
+      --orange: #ffab57;
+      --shadow: rgba(0, 0, 0, .55);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(151, 107, 49, .18) 0 18px, transparent 18px 52px) 0 0 / 96px 96px,
+        linear-gradient(90deg, rgba(87, 57, 25, .18) 0 1px, transparent 1px 32px) 0 0 / 32px 32px,
+        #7a5729;
+      font-family: "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0;
+      font-size: 14px;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+      color: var(--text);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 40px;
+      padding: 6px 8px;
+      background: #2b292a;
+      border-bottom: 2px solid #111;
+      box-shadow: 0 2px 0 rgba(255,255,255,.06) inset, 0 3px 6px rgba(0,0,0,.65);
+    }
+
+    .topbar .spacer { flex: 1; }
+
+    .factorio-button,
+    .icon-button,
+    select,
+    input,
+    textarea {
+      border: 1px solid #666;
+      background: #8d8d8d;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(0,0,0,.28), 0 1px 2px rgba(0,0,0,.5);
+      border-radius: 0;
+    }
+
+    .factorio-button,
+    .icon-button {
+      min-height: 30px;
+      padding: 4px 16px;
+      cursor: pointer;
+      white-space: nowrap;
+      color: #111;
+      font-weight: 600;
+    }
+
+    .factorio-button:hover,
+    .icon-button:hover {
+      background: linear-gradient(#646464, #444);
+      border-color: #cfcfcf;
+    }
+
+    .factorio-button:active,
+    .factorio-button.primary,
+    .icon-button:active {
+      background: linear-gradient(#b27b26, #815511);
+      border-color: #d7a440;
+      color: #111;
+    }
+
+    .factorio-button.danger { background: linear-gradient(#7d3f3f, #512828); }
+    .factorio-button.good { background: linear-gradient(#4b7348, #2e4f2d); }
+    .factorio-button.disabled {
+      color: #444;
+      background: #777;
+      border-color: #555;
+      cursor: default;
+    }
+
+    select, input, textarea {
+      min-height: 30px;
+      padding: 4px 8px;
+      background: #222;
+      color: var(--text);
+    }
+
+    textarea {
+      resize: vertical;
+      width: 100%;
+      min-height: 72px;
+      line-height: 1.45;
+    }
+
+    .desktop {
+      min-height: calc(100vh - 42px);
+      padding: 28px 22px;
+      overflow: auto;
+    }
+
+    .window {
+      width: fit-content;
+      max-width: calc(100vw - 44px);
+      margin: 0 auto;
+      background: var(--panel);
+      border: 2px solid #111;
+      border-radius: 0;
+      box-shadow: inset 0 0 0 1px #4c4a4b, 0 2px 7px rgba(0,0,0,.78);
+    }
+
+    .window.lobby-window {
+      min-width: 580px;
+    }
+
+    .window.play-window {
+      min-width: 680px;
+      max-width: none;
+    }
+
+    .window.bid-window {
+      min-width: 680px;
+    }
+
+    .window.waiting-window {
+      min-width: 400px;
+    }
+
+    .window.over-window {
+      min-width: 300px;
+    }
+
+    .titlebar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 5px 8px 0 10px;
+      background: var(--panel);
+      border-bottom: 0;
+      user-select: none;
+      cursor: move;
+    }
+
+    .titlebar-title {
+      font-weight: 700;
+      color: var(--title);
+      white-space: nowrap;
+      font-size: 18px;
+      line-height: 24px;
+    }
+
+    .drag-space {
+      flex: 1;
+      min-width: 28px;
+      height: 24px;
+      background:
+        repeating-linear-gradient(90deg, #292a2d 0 3px, #36373b 3px 5px);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+    }
+
+    .close {
+      width: 26px;
+      min-width: 26px;
+      height: 26px;
+      padding: 0;
+      line-height: 1;
+      font-weight: 700;
+      color: #e8e8e8;
+      background: #3a3a3a;
+      border-color: #0f0f0f #5b5b5b #5b5b5b #0f0f0f;
+      font-size: 24px;
+    }
+
+    .content {
+      padding: 3px 10px 10px;
+    }
+
+    .line {
+      height: 1px;
+      margin: 8px 0 6px;
+      background: #8a8a8a;
+      box-shadow: 0 1px 0 rgba(0,0,0,.7);
+    }
+
+    .flow {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .flow.tight { gap: 2px; }
+    .flow.nowrap { flex-wrap: nowrap; }
+
+    .content > .flow > .factorio-button {
+      min-width: 108px;
+    }
+
+    .sound-group {
+      flex: 0 0 100%;
+      margin-top: 8px;
+      color: #f2d18a;
+      font-weight: 700;
+    }
+
+    .sound-test-button {
+      width: 118px;
+    }
+
+    .muted { color: var(--muted); }
+    .green { color: var(--green); }
+    .yellow { color: var(--yellow); }
+    .red { color: var(--red); }
+    .blue { color: var(--blue); }
+    .orange { color: var(--orange); }
+    .bold { font-weight: 700; }
+
+    .scroll {
+      overflow: auto;
+      max-height: 320px;
+      padding-right: 4px;
+    }
+
+    .table-row,
+    .seat-card,
+    .stat-panel,
+    .feedback-item {
+      background: var(--panel-2);
+      border: 1px solid #575757;
+      border-radius: 2px;
+    }
+
+    .table-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 500px;
+      padding: 6px;
+      margin-bottom: 6px;
+    }
+
+    .seat-list {
+      display: flex;
+      gap: 8px;
+      min-width: 280px;
+      flex: 1;
+      flex-wrap: wrap;
+    }
+
+    .seat-card {
+      min-width: 180px;
+      padding: 6px 8px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--panel-2);
+      border: 1px solid #555;
+    }
+
+    .seat-card.playing {
+      background: #35472e;
+      border-color: #82b76b;
+      box-shadow: inset 0 0 0 1px rgba(130,183,107,.18);
+    }
+
+    .seat-card.wide { min-width: 640px; }
+
+    .seat-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .seat-meta {
+      color: var(--blue);
+      white-space: nowrap;
+    }
+
+    .play-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .top-info {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .top-info .tracker {
+      padding-top: 20px;
+    }
+
+    .opponent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .player-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .player-left,
+    .player-right {
+      display: flex;
+      align-items: flex-start;
+      min-width: 0;
+    }
+
+    .player-left {
+      flex: 0 0 auto;
+      max-width: 100%;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .player-right {
+      flex: 1 1 0;
+      flex-direction: row;
+      gap: 8px;
+      min-height: 168px;
+      overflow-x: auto;
+    }
+
+    .player-right .played {
+      min-height: 168px;
+      align-items: flex-start;
+      overflow-x: auto;
+    }
+
+    .player-left.clipped,
+    .player-right.clipped {
+      height: 84px;
+      min-height: 84px;
+      max-height: 84px;
+      overflow: hidden;
+    }
+
+    .self-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+      padding: 6px 8px 8px;
+      background: var(--panel-2);
+      border: 1px solid #555;
+    }
+
+    .self-main {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+
+    .self-left {
+      flex: 0 0 auto;
+      min-width: 0;
+    }
+
+    .self-left.empty {
+      display: none;
+    }
+
+    .self-right {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .self-right .played {
+      min-height: 168px;
+      align-items: flex-start;
+      overflow-x: auto;
+    }
+
+    .self-status {
+      min-height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+
+    .self-command-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+
+    .play-stage {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      min-height: 168px;
+      overflow-x: auto;
+    }
+
+    .play-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+
+    .card {
+      width: 120px;
+      height: 168px;
+      padding: 0;
+      text-align: left;
+      vertical-align: top;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.05;
+      color: #111;
+      background:
+        linear-gradient(#b4b4b4, #8f8f8f);
+      border: 1px solid #707070;
+      border-radius: 2px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 2px 4px rgba(0,0,0,.35);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .card.small {
+      width: 120px;
+      height: 168px;
+      font-size: 20px;
+      cursor: default;
+    }
+
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 120px);
+      grid-auto-rows: 168px;
+      gap: 6px;
+      align-content: start;
+    }
+
+    .card.selected {
+      color: var(--yellow);
+      transform: translateY(-40px);
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 1px rgba(255,216,77,.35), 0 8px 10px rgba(0,0,0,.45);
+    }
+
+    .card.red-suit { color: #bf0000; }
+    .card.selected.red-suit { color: var(--yellow); }
+    .card.bottom-played {
+      border-color: #b9b9b9;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 2px 4px rgba(0,0,0,.28);
+    }
+    .card.back {
+      color: #111;
+      text-align: center;
+      padding-top: 40px;
+      font-size: 30px;
+    }
+    .card.card-back {
+      padding: 0;
+    }
+    .card img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      pointer-events: none;
+    }
+
+    .range-hint {
+      height: 30px;
+      min-height: 30px;
+      color: #111;
+      cursor: default;
+    }
+
+    .hand {
+      display: flex;
+      gap: 1px;
+      align-items: flex-end;
+      min-height: 105px;
+      max-width: 100%;
+      overflow-x: auto;
+      padding-top: 22px;
+      padding-bottom: 4px;
+    }
+
+    .played {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 2px;
+      align-items: center;
+      min-height: 92px;
+      overflow-x: auto;
+    }
+
+    .tracker {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .tracker-grid {
+      display: flex;
+      flex-direction: column;
+      width: max-content;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.05;
+    }
+
+    .tracker-row {
+      display: grid;
+      grid-template-columns: 54px repeat(15, 28px);
+      align-items: center;
+    }
+
+    .track-cell {
+      min-width: 28px;
+      text-align: center;
+      white-space: nowrap;
+      letter-spacing: 0;
+    }
+
+    .track-label {
+      min-width: 54px;
+      font-weight: 700;
+    }
+
+    .track-suit {
+      font-weight: 700;
+    }
+
+    .track-zero { color: #555; }
+
+    .track-red { color: #d33; }
+    .track-gray { color: #9a9a9a; }
+
+    .track-blank { color: transparent; }
+
+    .modal-layer {
+      position: fixed;
+      inset: 42px 0 0;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 28px 16px;
+      background: rgba(0,0,0,.28);
+      z-index: 5;
+      overflow: auto;
+    }
+
+    .modal-layer.show { display: flex; }
+
+    .modal-window {
+      background: var(--panel);
+      border: 1px solid #666;
+      border-radius: 3px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.65);
+      max-width: calc(100vw - 32px);
+    }
+
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 112px minmax(220px, 360px);
+      gap: 8px 10px;
+      max-height: 480px;
+      overflow: auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 130px 60px 60px 60px 70px 70px;
+      gap: 0;
+      align-items: center;
+      min-height: 28px;
+    }
+
+    .stats-row > div { padding: 2px 4px; }
+
+    .qr {
+      display: block;
+      width: 320px;
+      max-width: calc(100vw - 70px);
+      height: auto;
+      background: #fff;
+      padding: 4px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      color: #fff;
+      background: rgba(0,0,0,.8);
+      border: 1px solid #777;
+      border-radius: 2px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s;
+      z-index: 10;
+    }
+
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 720px) {
+      .desktop { padding: 10px; }
+      .window { max-width: calc(100vw - 20px); }
+      .table-row { min-width: 0; align-items: flex-start; flex-direction: column; }
+      .seat-card.wide { min-width: 260px; }
+      .stats-row { grid-template-columns: 1.3fr repeat(5, .7fr); font-size: 12px; }
+      .card { width: 120px; height: 168px; font-size: 20px; }
+      .card.small { width: 120px; height: 168px; font-size: 20px; }
+      .rules-grid { grid-template-columns: 92px minmax(170px, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="factorio-button primary" id="topBtn">斗地主</button>
+    <span class="muted">当前玩家</span>
+    <select id="playerSelect"></select>
+    <button class="factorio-button" id="addHumanBtn">添加玩家</button>
+    <div class="spacer"></div>
+    <button class="factorio-button" id="resetBtn">重置浏览器牌局</button>
+  </div>
+
+  <main class="desktop">
+    <div id="app"></div>
+  </main>
+
+  <div class="modal-layer" id="modal"></div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const SUITS = ["♠", "♥", "♣", "♦"];
+    const VALS = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+    const RANK = {"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"10":10,"J":11,"Q":12,"K":13,"A":14,"2":15,"小王":16,"大王":17};
+    const TYPE_NAMES = {
+      single:"单张", pair:"对子", triple:"三张", t1:"三带一", t2:"三带二",
+      seq:"顺子", pseq:"连对", plane:"飞机", plane1:"飞机带单翅", plane2:"飞机带对翅",
+      s41:"四带两单", s42:"四带两对", bomb:"炸弹", rocket:"火箭"
+    };
+    const VAL_MAX = {"大王":1,"小王":1,"2":4,"A":4,"K":4,"Q":4,"J":4,"10":4,"9":4,"8":4,"7":4,"6":4,"5":4,"4":4,"3":4};
+    const STAT_VALS = ["大王","小王","2","A","K","Q","J","10","9","8","7","6","5","4","3"];
+    const AI_SLOT_NAMES = ["AI甲","AI乙","AI丙"];
+    const SAVE_KEY = "ddz_html_state_v1";
+    const SOUND_GROUPS = {
+      ddz:"推荐", gui:"界面/提示", result:"结果/完成", item:"物品/设置",
+      build:"建造/蓝图", deconstruct:"拆除", rotate:"旋转", equipment:"装备/武器",
+      world:"环境/动作", wire:"电线", tile:"已确认地砖路径"
+    };
+    const SOUND_GROUP_ORDER = ["gui","item","result","equipment","world","build","deconstruct","rotate","wire","tile"];
+    const RECOMMENDED_SOUND_TESTS = [
+      {id:"gui_click", path:"utility/gui_click", label:"按钮", group:"ddz"},
+      {id:"inventory_click", path:"utility/inventory_click", label:"选牌", group:"ddz"},
+      {id:"smart_pipette", path:"utility/smart_pipette", label:"提示成功", group:"ddz"},
+      {id:"cannot_build", path:"utility/cannot_build", label:"建议跳过", group:"ddz"},
+      {id:"new_objective", path:"utility/new_objective", label:"轮到自己", group:"ddz"},
+      {id:"drop_item", path:"utility/drop_item", label:"出牌", group:"ddz"},
+      {id:"list_box_click", path:"utility/list_box_click", label:"跳过", group:"ddz"},
+      {id:"confirm", path:"utility/confirm", label:"叫分", group:"ddz"},
+      {id:"item_spawned", path:"utility/item_spawned", label:"发牌", group:"ddz"},
+      {id:"research_completed", path:"utility/research_completed", label:"地主确认", group:"ddz"},
+      {id:"build_large", path:"utility/build_large", label:"炸弹", group:"ddz"},
+      {id:"build_huge", path:"utility/build_huge", label:"火箭", group:"ddz"},
+      {id:"gui_switch", path:"utility/gui_switch", label:"托管", group:"ddz"},
+      {id:"alert_destroyed", path:"utility/alert_destroyed", label:"警告", group:"ddz"},
+      {id:"game_won", path:"utility/game_won", label:"胜利", group:"ddz"},
+      {id:"game_lost", path:"utility/game_lost", label:"失败", group:"ddz"},
+      {id:"entity_settings_pasted", path:"utility/entity_settings_pasted", label:"导出", group:"ddz"},
+    ];
+    const SOUND_TESTS = [
+      {id:"gui_click", path:"utility/gui_click", label:"界面点击", group:"gui"},
+      {id:"inventory_click", path:"utility/inventory_click", label:"物品格点击", group:"item"},
+      {id:"smart_pipette", path:"utility/smart_pipette", label:"吸管选取", group:"gui"},
+      {id:"cannot_build", path:"utility/cannot_build", label:"否定提示", group:"gui"},
+      {id:"new_objective", path:"utility/new_objective", label:"新目标", group:"gui"},
+      {id:"drop_item", path:"utility/drop_item", label:"放下物品", group:"item"},
+      {id:"list_box_click", path:"utility/list_box_click", label:"列表选择", group:"gui"},
+      {id:"confirm", path:"utility/confirm", label:"确认操作", group:"gui"},
+      {id:"item_spawned", path:"utility/item_spawned", label:"物品生成", group:"item"},
+      {id:"research_completed", path:"utility/research_completed", label:"研究完成", group:"result"},
+      {id:"build_large", path:"utility/build_large", label:"大型建造", group:"build"},
+      {id:"build_huge", path:"utility/build_huge", label:"超大建造", group:"build"},
+      {id:"gui_switch", path:"utility/gui_switch", label:"开关切换", group:"gui"},
+      {id:"alert_destroyed", path:"utility/alert_destroyed", label:"警报", group:"gui"},
+      {id:"game_won", path:"utility/game_won", label:"胜利提示", group:"result"},
+      {id:"game_lost", path:"utility/game_lost", label:"失败提示", group:"result"},
+      {id:"entity_settings_pasted", path:"utility/entity_settings_pasted", label:"粘贴设置", group:"item"},
+      {id:"achievement_unlocked", path:"utility/achievement_unlocked", label:"成就解锁", group:"result"},
+      {id:"armor_insert", path:"utility/armor_insert", label:"装入装备", group:"equipment"},
+      {id:"armor_remove", path:"utility/armor_remove", label:"移除装备", group:"equipment"},
+      {id:"axe_fighting", path:"utility/axe_fighting", label:"近战打击", group:"world"},
+      {id:"axe_mining_ore", path:"utility/axe_mining_ore", label:"挖矿", group:"world"},
+      {id:"axe_mining_stone", path:"utility/axe_mining_stone", label:"敲石头", group:"world"},
+      {id:"build_animated_huge", path:"utility/build_animated_huge", label:"超大动画建造", group:"build"},
+      {id:"build_animated_large", path:"utility/build_animated_large", label:"大型动画建造", group:"build"},
+      {id:"build_animated_medium", path:"utility/build_animated_medium", label:"中型动画建造", group:"build"},
+      {id:"build_animated_small", path:"utility/build_animated_small", label:"小型动画建造", group:"build"},
+      {id:"build_blueprint_huge", path:"utility/build_blueprint_huge", label:"超大蓝图", group:"build"},
+      {id:"build_blueprint_large", path:"utility/build_blueprint_large", label:"大型蓝图", group:"build"},
+      {id:"build_blueprint_medium", path:"utility/build_blueprint_medium", label:"中型蓝图", group:"build"},
+      {id:"build_blueprint_small", path:"utility/build_blueprint_small", label:"小型蓝图", group:"build"},
+      {id:"build_ghost_upgrade", path:"utility/build_ghost_upgrade", label:"幽灵升级", group:"build"},
+      {id:"build_ghost_upgrade_cancel", path:"utility/build_ghost_upgrade_cancel", label:"取消幽灵升级", group:"build"},
+      {id:"build_medium", path:"utility/build_medium", label:"中型建造", group:"build"},
+      {id:"build_small", path:"utility/build_small", label:"小型建造", group:"build"},
+      {id:"clear_cursor", path:"utility/clear_cursor", label:"清空手持", group:"gui"},
+      {id:"console_message", path:"utility/console_message", label:"控制台消息", group:"gui"},
+      {id:"crafting_finished", path:"utility/crafting_finished", label:"制作完成", group:"result"},
+      {id:"deconstruct_huge", path:"utility/deconstruct_huge", label:"超大拆除", group:"deconstruct"},
+      {id:"deconstruct_large", path:"utility/deconstruct_large", label:"大型拆除", group:"deconstruct"},
+      {id:"deconstruct_medium", path:"utility/deconstruct_medium", label:"中型拆除", group:"deconstruct"},
+      {id:"deconstruct_robot", path:"utility/deconstruct_robot", label:"机器人拆除", group:"deconstruct"},
+      {id:"deconstruct_small", path:"utility/deconstruct_small", label:"小型拆除", group:"deconstruct"},
+      {id:"default_driving_sound", path:"utility/default_driving_sound", label:"默认驾驶", group:"world"},
+      {id:"default_landing_steps", path:"utility/default_landing_steps", label:"默认落地脚步", group:"world"},
+      {id:"default_manual_repair", path:"utility/default_manual_repair", label:"手动维修", group:"world"},
+      {id:"entity_settings_copied", path:"utility/entity_settings_copied", label:"复制设置", group:"item"},
+      {id:"inventory_move", path:"utility/inventory_move", label:"物品移动", group:"item"},
+      {id:"item_deleted", path:"utility/item_deleted", label:"物品删除", group:"item"},
+      {id:"metal_walking_sound", path:"utility/metal_walking_sound", label:"金属脚步", group:"world"},
+      {id:"mining_wood", path:"utility/mining_wood", label:"砍木头", group:"world"},
+      {id:"paste_activated", path:"utility/paste_activated", label:"应用粘贴", group:"item"},
+      {id:"picked_up_item", path:"utility/picked_up_item", label:"拾取物品", group:"item"},
+      {id:"rail_plan_start", path:"utility/rail_plan_start", label:"铁路规划", group:"world"},
+      {id:"rotated_huge", path:"utility/rotated_huge", label:"超大旋转", group:"rotate"},
+      {id:"rotated_large", path:"utility/rotated_large", label:"大型旋转", group:"rotate"},
+      {id:"rotated_medium", path:"utility/rotated_medium", label:"中型旋转", group:"rotate"},
+      {id:"rotated_small", path:"utility/rotated_small", label:"小型旋转", group:"rotate"},
+      {id:"scenario_message", path:"utility/scenario_message", label:"场景消息", group:"gui"},
+      {id:"segment_dying_sound", path:"utility/segment_dying_sound", label:"敌人死亡", group:"world"},
+      {id:"switch_gun", path:"utility/switch_gun", label:"切换武器", group:"equipment"},
+      {id:"tutorial_notice", path:"utility/tutorial_notice", label:"教程提示", group:"gui"},
+      {id:"undo", path:"utility/undo", label:"撤销", group:"gui"},
+      {id:"wire_connect_pole", path:"utility/wire_connect_pole", label:"电线连接", group:"wire"},
+      {id:"wire_disconnect", path:"utility/wire_disconnect", label:"电线断开", group:"wire"},
+      {id:"wire_pickup", path:"utility/wire_pickup", label:"拿起电线", group:"wire"},
+      {id:"tile_build_small_concrete", path:"tile-build-small/concrete", label:"混凝土铺地", group:"tile"}
+    ];
+
+    let state = loadState() || freshState();
+    state.replayArchive ||= {};
+    state.replayArchiveOrder ||= [];
+    state.nextReplayId ||= 1;
+    state.replayView ||= {};
+    state.uiTest ||= {sel:{}, played:[]};
+    state.trustees ||= {};
+    state.spectating ||= {};
+    state.soundEnabled ??= true;
+    let currentPlayer = state.players[0].id;
+    let timer = null;
+
+    function freshState() {
+      return {
+        players: [{id:1, name:"玩家1"}, {id:2, name:"玩家2"}, {id:3, name:"玩家3"}],
+        nextPlayerId: 4,
+        nextTid: 1,
+        nextAiId: -1,
+        tables: {},
+        seat: {},
+        aiNames: {},
+        trustees: {},
+        spectating: {},
+        stats: {},
+        feedback: [],
+        replayArchive: {},
+        replayArchiveOrder: [],
+        nextReplayId: 1,
+        replayView: {},
+        uiTest: {sel:{}, played:[]},
+        soundEnabled: true
+      };
+    }
+
+    function saveState() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem(SAVE_KEY)); }
+      catch { return null; }
+    }
+
+    function $(id) { return document.getElementById(id); }
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, ch => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+      }[ch]));
+    }
+
+    function isAi(id) { return Number(id) < 0; }
+
+    function isTrusted(id) {
+      return !isAi(id) && !!state.trustees?.[id];
+    }
+
+    function isAutoActor(id) {
+      return isAi(id) || isTrusted(id);
+    }
+
+    function pname(id) {
+      id = Number(id);
+      if (isAi(id)) return state.aiNames[id] || ("AI" + (-id));
+      const p = state.players.find(x => x.id === id);
+      return p ? p.name : ("P" + id);
+    }
+
+    function sortedKeys(obj) {
+      return Object.keys(obj).map(Number).sort((a,b) => a-b);
+    }
+
+    function createDeck() {
+      const deck = [];
+      for (const suit of SUITS) for (const val of VALS) deck.push({suit, val, rank:RANK[val]});
+      deck.push({suit:"", val:"小王", rank:16});
+      deck.push({suit:"", val:"大王", rank:17});
+      return deck;
+    }
+
+    function shuffle(deck) {
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+    }
+
+    function sortHand(hand) {
+      hand.sort((a,b) => b.rank - a.rank || String(b.suit).localeCompare(String(a.suit)));
+    }
+
+    function cardLabel(card) {
+      if (!card) return "";
+      if (!card.suit) return card.val;
+      return card.val + card.suit;
+    }
+
+    function cardCopy(card) {
+      return card ? {suit:card.suit, val:card.val, rank:card.rank} : card;
+    }
+
+    function cardSame(a, b) {
+      return !!a && !!b && a.rank === b.rank && a.suit === b.suit && a.val === b.val;
+    }
+
+    function isRed(card) {
+      return card && (card.suit === "♥" || card.suit === "♦" || card.val === "大王");
+    }
+
+    function cardBackVariant(card) {
+      return isRed(card) ? 2 : 1;
+    }
+
+    const CARD_SUIT_FILE = {"♠":"S", "♥":"H", "♦":"D", "♣":"C"};
+    const CARD_IMAGE_DIR = "../png/png_converted/";
+    const CARD_PLAYED_IMAGE_DIR = "../png/png_converted_played/";
+    const DEFAULT_CARD_BACK_IMAGE = "1B_Goodall.png";
+    const TEST_CARD_BACK_IMAGES = ["1B.png", "2B.png", "1B_Goodall.png", "2B_Goodall.png"];
+
+    function cardImageName(card) {
+      if (!card) return "";
+      if (!card.suit) {
+        if (card.val === "大王") return "JK-Red.png";
+        if (card.val === "小王") return "JK-Black.png";
+        return "";
+      }
+      const suit = CARD_SUIT_FILE[card.suit];
+      return suit ? `${card.val}${suit}.png` : "";
+    }
+
+    function cardImagePath(card, opts = {}) {
+      const name = cardImageName(card);
+      if (!name) return "";
+      return `${opts.played ? CARD_PLAYED_IMAGE_DIR : CARD_IMAGE_DIR}${name}`;
+    }
+
+    const TEST_RED_COLORS = {
+      default: ["默认红", "#ff1414"],
+      bright: ["亮红", "#ff0000"],
+      rose: ["玫瑰红", "#ff3373"],
+      orange: ["橙红", "#ff4700"],
+      deep: ["深红", "#bf0000"]
+    };
+
+    function cardHtml(card, opts = {}) {
+      const cls = ["card"];
+      if (opts.small) cls.push("small");
+      if (opts.selected) cls.push("selected");
+      if (opts.textYellow) cls.push("bottom-played");
+      if (isRed(card)) cls.push("red-suit");
+      const name = opts.name ? ` data-action="${esc(opts.name)}"` : "";
+      const styles = [];
+      if (opts.style) styles.push(opts.style);
+      if (opts.redColor && isRed(card) && !opts.selected) styles.push(`color:${opts.redColor}`);
+      const style = styles.length ? ` style="${esc(styles.join(";"))}"` : "";
+      const src = cardImagePath(card, {played: !!opts.played});
+      const body = src ? `<img src="${esc(src)}" alt="${esc(cardLabel(card))}">` : esc(cardLabel(card));
+      return `<button class="${cls.join(" ")}"${name}${style}>${body}</button>`;
+    }
+
+    function overlapCardsHtml(cards, opts = {}) {
+      const cardWidth = 120;
+      const overlap = Math.max(0, Math.min(120, opts.overlap ?? 0));
+      return (cards || []).map((c, i) => cardHtml(c, {
+        small:!!opts.small,
+        selected: opts.selected ? !!opts.selected(i, c) : false,
+        name: opts.name ? opts.name(i, c) : "",
+        redColor: opts.redColor,
+        style: i > 0 && overlap ? `margin-left:-${overlap}px` : ""
+      })).join("");
+    }
+
+    function playedPanelCardsHtml(cards) {
+      return overlapCardsHtml(cards, {small:true, overlap:100});
+    }
+
+    const TRACKER_SUITS = ["♠", "♥", "♦", "♣"];
+
+    function trackerSuitColor(suit) {
+      return (suit === "♥" || suit === "♦") ? "#d33" : "#9a9a9a";
+    }
+
+    function trackerCellHtml(text, cls = "") {
+      return `<div class="track-cell ${cls}">${text === "" ? "&nbsp;" : esc(text)}</div>`;
+    }
+
+    function trackerRowHtml(label, cells, labelClass = "") {
+      return `<div class="tracker-row">
+        <div class="track-cell track-label ${labelClass}">${esc(label)}</div>
+        ${cells.map(cell => trackerCellHtml(cell.text, cell.cls || "")).join("")}
+      </div>`;
+    }
+
+    function trackerTableHtml(g, myCounts, mySuits) {
+      const rows = [];
+      rows.push(trackerRowHtml("记牌器", STAT_VALS.map(v => ({ text: v })), "track-label"));
+      rows.push(trackerRowHtml("剩余", STAT_VALS.map(v => {
+        const remaining = Math.max(0, VAL_MAX[v] - (g.playedCards[v] || 0) - (myCounts[v] || 0));
+        const cls = [
+          "track-total",
+          remaining === 0 ? "track-zero" : "",
+          v === "大王" && remaining ? "track-red" : "",
+          remaining === 1 ? "yellow bold" : ""
+        ].filter(Boolean).join(" ");
+        return { text: String(remaining), cls };
+      }), "track-label"));
+      for (const suit of TRACKER_SUITS) {
+        rows.push(trackerRowHtml(suit, STAT_VALS.map(v => {
+          if (v === "大王" || v === "小王") {
+            return { text: "", cls: "track-blank" };
+          }
+          const remaining = Math.max(0, 1 - (g.playedSuits?.[v]?.[suit] || 0) - (mySuits[v]?.[suit] || 0));
+          return {
+            text: remaining ? "1" : "",
+            cls: [
+              "track-suit",
+              remaining === 0 ? "track-zero" : "",
+              trackerSuitColor(suit) === "#d33" ? "track-red" : "track-gray"
+            ].filter(Boolean).join(" ")
+          };
+        }), suit === "♥" || suit === "♦" ? "track-red" : ""));
+      }
+      return `<div class="tracker-grid">${rows.join("")}</div>`;
+    }
+
+    function uiTestDeck() {
+      const deck = createDeck();
+      sortHand(deck);
+      return deck;
+    }
+
+    function uiTestSelectedCards() {
+      const deck = uiTestDeck();
+      return deck.filter((_, i) => state.uiTest?.sel?.[i + 1]);
+    }
+
+    function uiTestSelectedEntries() {
+      const deck = uiTestDeck();
+      return deck.map((card, i) => ({card, idx:i + 1})).filter(x => state.uiTest?.sel?.[x.idx]);
+    }
+
+    function orderedTestEntries(entries, pt) {
+      if (!pt) return entries;
+      const ordered = orderPlayCards(entries.map(x => x.card), pt);
+      const remaining = [...entries];
+      const out = [];
+      for (const card of ordered) {
+        const idx = remaining.findIndex(item => item.card === card);
+        if (idx >= 0) out.push(...remaining.splice(idx, 1));
+      }
+      out.push(...remaining);
+      return out;
+    }
+
+    function openTestTool() {
+      state.uiTest ||= {sel:{}, played:[]};
+      state.uiTest.overlap ??= 100;
+      state.uiTest.redColor ??= "deep";
+      const selected = uiTestSelectedEntries();
+      const selectedType = selected.length ? getType(selected.map(x => x.card)) : null;
+      const previewEntries = orderedTestEntries(selected, selectedType);
+      const played = state.uiTest.played || [];
+      const testOverlap = state.uiTest.overlap;
+      const redKey = state.uiTest.redColor;
+      const redHex = TEST_RED_COLORS[redKey]?.[1] || TEST_RED_COLORS.default[1];
+      const overlapButtons = [20,40,60,80,100]
+        .map(v => `<button class="factorio-button ${v === testOverlap ? "good" : ""}" data-action="testOverlap:${v}">${v}</button>`)
+        .join("");
+      const redButtons = Object.entries(TEST_RED_COLORS)
+        .map(([key, [label, color]]) => `<button class="factorio-button ${key === redKey ? "good" : ""}" style="color:${color}" data-action="testRed:${key}">${label}</button>`)
+        .join("");
+      const soundButtons = soundButtonsHtml(RECOMMENDED_SOUND_TESTS, false);
+      let body = `<div class="flow" style="align-items:center"><span>固定压值：</span>${overlapButtons}<input id="testOverlapInput" value="${esc(String(testOverlap))}" style="width:54px"><button class="factorio-button" data-action="testOverlapApply">应用</button><button class="factorio-button range-hint" tabindex="-1">范围 0-120</button></div>
+        <div class="flow" style="margin-top:6px"><span>红牌颜色：</span>${redButtons}</div>
+        <div style="margin-top:8px;padding:6px;border:1px solid #555;background:var(--panel-3)">
+          <div class="bold">音效测试：</div>
+          <div class="flow sound-test-grid" style="flex-wrap:wrap;margin-top:6px">${soundButtons}<button class="factorio-button good sound-test-button" data-action="allSoundTest">全部音效测试</button></div>
+          <div class="muted" style="margin-top:6px">这里保留斗地主当前使用/推荐的常用音效。要试听全部可直接播放路径，请点「全部音效测试」。</div>
+        </div>
+        <div class="bold" style="margin-top:8px">预览牌区（已选 ${selected.length} 张，每张重叠 ${testOverlap}px，点击预览牌可取消）</div>
+        ${selected.length ? `<div>牌型：${selectedType ? `<span class="green">${esc(TYPE_NAMES[selectedType.tp] || "牌")}</span>` : `<span class="red">无效牌型</span>`}</div>` : ""}
+        <div class="played" style="height:174px;align-items:flex-start">${overlapCardsHtml(previewEntries.map(x => x.card), {small:true, overlap:testOverlap, redColor:redHex, name:(i) => `testCard:${previewEntries[i].idx}`})}</div>
+        <div class="flow" style="margin-top:8px;align-items:center"><span>牌背：</span>${TEST_CARD_BACK_IMAGES.map(image => backCardHtml({image})).join("")}</div>
+        <div class="flow" style="margin-top:8px">
+          <button class="factorio-button" data-action="testClear">清空</button>
+          <button class="factorio-button" data-action="testPick:10">选10张</button>
+          <button class="factorio-button" data-action="testPick:15">选15张</button>
+          <button class="factorio-button" data-action="testPick:20">选20张</button>
+        </div>
+        <div class="line"></div>
+        <div>牌库（点击选择，再次点击取消）：</div>
+        <div class="scroll"><div class="deck-grid">` + (() => {
+          let deckHtml = "";
+          uiTestDeck().forEach((c, i) => {
+            deckHtml += cardHtml(c, {selected:!!state.uiTest.sel[i + 1], name:`testCard:${i + 1}`, redColor:redHex});
+          });
+          TEST_CARD_BACK_IMAGES.forEach(image => {
+            deckHtml += backCardHtml({small:true, image});
+          });
+          return deckHtml;
+        })() + `</div></div>`;
+      openModal("斗地主 · 牌面/音效测试", body, 940);
+    }
+
+    function soundButtonsHtml(items, showGroups = true) {
+      let html = "";
+      const renderItem = item => {
+        html += `<button class="factorio-button sound-test-button" title="${esc(item.path)}" data-action="testSound:${item.id}">${esc(item.label || item.id)}</button>`;
+      };
+      if (!showGroups) {
+        items.forEach(renderItem);
+        return html;
+      }
+      SOUND_GROUP_ORDER.forEach(group => {
+        const groupItems = items.filter(item => item.group === group);
+        if (!groupItems.length) return;
+        html += `<div class="sound-group">${esc(SOUND_GROUPS[group] || group)}</div>`;
+        groupItems.forEach(renderItem);
+      });
+      return html;
+    }
+
+    function openAllSoundTest() {
+      const body = `<div class="muted">这里列出 66 个 Factorio 内置 utility 声音和 1 个已确认地砖声音。浏览器预览使用合成试听音；游戏内会播放对应 Factorio 路径。</div>
+        <div class="scroll" style="max-height:620px;margin-top:8px">
+          <div class="flow sound-test-grid" style="flex-wrap:wrap">${soundButtonsHtml(SOUND_TESTS, true)}</div>
+        </div>`;
+      openModal("全部音效测试", body, 940);
+    }
+
+    function testPick(limit) {
+      state.uiTest ||= {sel:{}, played:[]};
+      state.uiTest.overlap ??= 100;
+      state.uiTest.redColor ??= "deep";
+      state.uiTest.sel = {};
+      for (let i = 1; i <= Math.min(limit, 54); i++) state.uiTest.sel[i] = true;
+      state.uiTest.played = uiTestSelectedCards();
+      saveState();
+      openTestTool();
+    }
+
+    function testClear() {
+      const overlap = state.uiTest?.overlap ?? 100;
+      const redColor = state.uiTest?.redColor ?? "deep";
+      state.uiTest = {sel:{}, played:[], overlap, redColor};
+      saveState();
+      openTestTool();
+    }
+
+    function testOverlap(overlap) {
+      state.uiTest ||= {sel:{}, played:[]};
+      state.uiTest.overlap = overlap;
+      saveState();
+      openTestTool();
+    }
+
+    function testOverlapApply() {
+      const input = $("testOverlapInput");
+      let overlap = Number(input?.value);
+      if (!Number.isFinite(overlap)) overlap = state.uiTest?.overlap ?? 100;
+      overlap = Math.max(0, Math.min(120, Math.floor(overlap)));
+      testOverlap(overlap);
+    }
+
+    function testRed(key) {
+      state.uiTest ||= {sel:{}, played:[]};
+      state.uiTest.redColor = TEST_RED_COLORS[key] ? key : "default";
+      saveState();
+      openTestTool();
+    }
+
+    function backCardHtml(opts = {}) {
+      const image = opts.image || DEFAULT_CARD_BACK_IMAGE;
+      const style = opts.style ? ` style="${esc(opts.style)}"` : "";
+      return `<button class="card ${opts.small ? "small " : ""}card-back" tabindex="-1"${style}><img src="${CARD_IMAGE_DIR}${image}" alt="牌背"></button>`;
+    }
+
+    function backCardsHtml(count, opts = {}) {
+      const n = Math.max(0, Math.floor(Number(count) || 0));
+      if (!n) return "";
+      const overlap = Math.max(0, Math.min(120, opts.overlap ?? 100));
+      const parts = [];
+      for (let i = 0; i < n; i++) {
+        parts.push(backCardHtml({
+          small: !!opts.small,
+          variant: opts.variant,
+          style: i > 0 && overlap ? `margin-left:-${overlap}px` : ""
+        }));
+      }
+      return parts.join("");
+    }
+
+    function rankCounts(cards) {
+      const c = {};
+      for (const card of cards) c[card.rank] = (c[card.rank] || 0) + 1;
+      return c;
+    }
+
+    function getType(cards) {
+      const n = cards.length;
+      if (!n) return null;
+      const cnt = rankCounts(cards);
+      const ranks = sortedKeys(cnt);
+      if (n === 2 && cnt[16] && cnt[17]) return {tp:"rocket", key:17, n:2};
+      if (n === 4 && ranks.length === 1) return {tp:"bomb", key:ranks[0], n:4};
+      if (n === 1) return {tp:"single", key:ranks[0], n:1};
+      if (n === 2 && cnt[ranks[0]] === 2) return {tp:"pair", key:ranks[0], n:2};
+      if (n === 3 && ranks.length === 1) return {tp:"triple", key:ranks[0], n:3};
+      if (n === 4 && ranks.some(r => cnt[r] === 3)) return {tp:"t1", key:ranks.find(r => cnt[r] === 3), n:4};
+      if (n === 5) {
+        const k3 = ranks.find(r => cnt[r] === 3);
+        if (k3 && ranks.some(r => r !== k3 && cnt[r] === 2)) return {tp:"t2", key:k3, n:5};
+      }
+      if (n >= 5 && ranks.length === n && ranks.every(r => cnt[r] === 1 && r < 15) && isConsecutive(ranks)) {
+        return {tp:"seq", key:ranks[ranks.length - 1], n};
+      }
+      if (n >= 6 && n % 2 === 0 && ranks.length === n / 2 && ranks.every(r => cnt[r] === 2 && r < 15) && isConsecutive(ranks)) {
+        return {tp:"pseq", key:ranks[ranks.length - 1], n};
+      }
+      const triples = ranks.filter(r => cnt[r] >= 3 && r < 15).sort((a,b) => a-b);
+      if (triples.length >= 2 && isConsecutive(triples)) {
+        const wings = n - triples.length * 3;
+        if (wings === 0) return {tp:"plane", key:triples[triples.length - 1], n};
+        if (wings === triples.length) {
+          let ok = true;
+          for (const r of ranks) {
+            const inTriple = triples.includes(r);
+            if (inTriple && cnt[r] < 3) ok = false;
+          }
+          if (ok) return {tp:"plane1", key:triples[triples.length - 1], n};
+        }
+        if (wings === triples.length * 2) {
+          let ok = true;
+          for (const r of ranks) {
+            const inTriple = triples.includes(r);
+            if (inTriple ? cnt[r] !== 3 : cnt[r] !== 2) ok = false;
+          }
+          if (ok) return {tp:"plane2", key:triples[triples.length - 1], n};
+        }
+      }
+      if (n === 6) {
+        for (const r of ranks) {
+          const wings = ranks.reduce((sum, r2) => r2 === r ? sum : sum + cnt[r2], 0);
+          if (cnt[r] === 4 && wings === 2) {
+            return {tp:"s41", key:r, n};
+          }
+        }
+      }
+      if (n === 8) {
+        for (const r of ranks) {
+          if (cnt[r] === 4 && ranks.filter(r2 => r2 !== r && cnt[r2] === 2).length === 2) {
+            return {tp:"s42", key:r, n};
+          }
+        }
+      }
+      return null;
+    }
+
+    function isConsecutive(ranks) {
+      for (let i = 1; i < ranks.length; i++) if (ranks[i] !== ranks[i - 1] + 1) return false;
+      return true;
+    }
+
+    function canBeat(last, play) {
+      if (play.tp === "rocket") return true;
+      if (play.tp === "bomb" && last.tp !== "bomb" && last.tp !== "rocket") return true;
+      return play.tp === last.tp && play.n === last.n && play.key > last.key;
+    }
+
+    function sortedCards(cards) {
+      const out = [...(cards || [])];
+      sortHand(out);
+      return out;
+    }
+
+    function cardGroups(cards) {
+      const groups = {};
+      for (const c of sortedCards(cards)) (groups[c.rank] ||= []).push(c);
+      return groups;
+    }
+
+    function orderPlayCards(cards, pt = null) {
+      pt ||= getType(cards || []);
+      if (!pt) return sortedCards(cards);
+      const orderedTypes = new Set(["t1", "t2", "s41", "s42", "plane", "plane1", "plane2"]);
+      if (!orderedTypes.has(pt.tp)) return sortedCards(cards);
+
+      const groups = cardGroups(cards);
+      const used = {};
+      const out = [];
+      const takeRank = (rank, count) => {
+        const group = groups[rank] || [];
+        for (let i = 0; i < Math.min(count, group.length); i++) out.push(group[i]);
+        used[rank] = (used[rank] || 0) + count;
+      };
+      const takeUnused = () => {
+        for (const c of sortedCards(cards)) {
+          const n = used[c.rank] || 0;
+          if (n > 0) used[c.rank] = n - 1;
+          else out.push(c);
+        }
+      };
+
+      if (pt.tp === "t1" || pt.tp === "t2") {
+        takeRank(pt.key, 3);
+        takeUnused();
+        return out;
+      }
+      if (pt.tp === "s41" || pt.tp === "s42") {
+        takeRank(pt.key, 4);
+        takeUnused();
+        return out;
+      }
+
+      let tripleCount = Math.floor(pt.n / 3);
+      if (pt.tp === "plane1") tripleCount = Math.floor(pt.n / 4);
+      else if (pt.tp === "plane2") tripleCount = Math.floor(pt.n / 5);
+      for (let r = pt.key; r >= pt.key - tripleCount + 1; r--) takeRank(r, 3);
+      takeUnused();
+      return out;
+    }
+
+    function copyCard(c) {
+      return c ? {suit:c.suit, val:c.val, rank:c.rank} : null;
+    }
+
+    function copyCards(cards) {
+      return (cards || []).map(copyCard);
+    }
+
+    function copyHands(g) {
+      const hands = {};
+      for (const pid of g.order || []) hands[pid] = copyCards(g.hands[pid] || []);
+      return hands;
+    }
+
+    function replayInit(g) {
+      delete g.replayArchiveId;
+      g.replay = {
+        start: {
+          order: [...(g.order || [])],
+          hands: copyHands(g),
+          bottom: copyCards(g.bottom || [])
+        },
+        steps: [],
+        pos: 0
+      };
+    }
+
+    function replayAddStep(g, step) {
+      if (!g.replay) return;
+      g.replay.steps.push(step);
+      g.replay.pos = g.replay.steps.length;
+    }
+
+    function replayRecordBid(g, pid, val) {
+      replayAddStep(g, {type:"bid", player:pid, value:val});
+    }
+
+    function replayRecordLandlord(g, pid) {
+      replayAddStep(g, {type:"landlord", player:pid, bottom:copyCards(g.bottom || [])});
+    }
+
+    function replayRecordPlay(g, pid, cards) {
+      const pt = getType(cards || []);
+      replayAddStep(g, {type:"play", player:pid, cards:copyCards(cards || []), tp:pt?.tp, key:pt?.key, n:pt?.n});
+    }
+
+    function replayRecordPass(g, pid) {
+      replayAddStep(g, {type:"pass", player:pid});
+    }
+
+    function replayRecordOver(g, msg) {
+      replayAddStep(g, {type:"over", msg:msg || g.overMsg || "游戏结束。"});
+      replayArchiveRound(g);
+    }
+
+    function replayCleanupArchive() {
+      state.replayArchive ||= {};
+      state.replayArchiveOrder ||= [];
+      state.replayView ||= {};
+      const protectedIds = new Set(Object.values(state.replayView).filter(Boolean));
+      const firstRecent = Math.max(0, state.replayArchiveOrder.length - 3);
+      state.replayArchiveOrder = state.replayArchiveOrder.filter((id, index) => {
+        const keep = index >= firstRecent || protectedIds.has(id);
+        if (!keep) delete state.replayArchive[id];
+        return keep && state.replayArchive[id];
+      });
+    }
+
+    function replayNames(g) {
+      const names = {};
+      for (const pid of g.order || []) names[pid] = pname(pid);
+      return names;
+    }
+
+    function replayArchiveRound(g) {
+      if (!g?.replay?.start) return null;
+      state.replayArchive ||= {};
+      state.replayArchiveOrder ||= [];
+      state.nextReplayId ||= 1;
+      let id = g.replayArchiveId;
+      if (!id) {
+        id = state.nextReplayId++;
+        g.replayArchiveId = id;
+        state.replayArchiveOrder.push(id);
+      } else if (!state.replayArchiveOrder.includes(id)) {
+        state.replayArchiveOrder.push(id);
+      }
+      const replay = JSON.parse(JSON.stringify(g.replay));
+      replay.pos = 0;
+      state.replayArchive[id] = {
+        id,
+        tid: g.tid,
+        phase: "over",
+        overMsg: g.overMsg,
+        names: replayNames(g),
+        replay
+      };
+      replayCleanupArchive();
+      return state.replayArchive[id];
+    }
+
+    function replayName(src, pid) {
+      return src.names?.[pid] || pname(pid);
+    }
+
+    function replayRemoveCards(hand, cards) {
+      const used = new Set();
+      for (const rc of cards || []) {
+        const idx = (hand || []).findIndex((hc, i) => !used.has(i) && hc.rank === rc.rank && hc.suit === rc.suit && hc.val === rc.val);
+        if (idx >= 0) used.add(idx);
+      }
+      [...used].sort((a,b) => b-a).forEach(i => hand.splice(i, 1));
+    }
+
+    function replayBuildState(g, pos) {
+      const rp = g.replay;
+      const st = {
+        order: [...(rp.start.order || [])],
+        hands: {},
+        bottom: copyCards(rp.start.bottom || []),
+        bottomPlayed: {},
+        bottomVisible: false,
+        landlord: null,
+        last: null,
+        actor: null,
+        desc: "发牌完成，进入叫分。"
+      };
+      for (const pid of st.order) st.hands[pid] = copyCards(rp.start.hands[pid] || []);
+      for (let i = 0; i < pos; i++) {
+        const step = rp.steps[i];
+        if (!step) continue;
+        if (step.type === "bid") {
+          st.actor = step.player;
+          st.desc = `${replayName(g, step.player)} ${step.value === 0 ? "不叫" : `叫${step.value}分`}`;
+        } else if (step.type === "landlord") {
+          st.actor = step.player;
+          st.landlord = step.player;
+          st.bottomVisible = true;
+          st.hands[step.player] ||= [];
+          st.hands[step.player].push(...copyCards(step.bottom || []));
+          sortHand(st.hands[step.player]);
+          st.desc = `${replayName(g, step.player)} 成为地主，获得底牌。`;
+        } else if (step.type === "play") {
+          st.actor = step.player;
+          replayRemoveCards(st.hands[step.player], step.cards);
+          for (const c of step.cards || []) {
+            for (let bi = 0; bi < st.bottom.length; bi++) {
+              if (!st.bottomPlayed[bi] && cardSame(c, st.bottom[bi])) {
+                st.bottomPlayed[bi] = true;
+                break;
+              }
+            }
+          }
+          st.last = {by:step.player, tp:step.tp, cards:copyCards(step.cards || [])};
+          st.desc = `${replayName(g, step.player)} 出牌：${TYPE_NAMES[step.tp] || step.tp || "牌"}`;
+        } else if (step.type === "pass") {
+          st.actor = step.player;
+          st.desc = `${replayName(g, step.player)} 跳过`;
+        } else if (step.type === "over") {
+          st.actor = null;
+          st.desc = step.msg || "游戏结束。";
+        }
+      }
+      return st;
+    }
+
+    function openReplay() {
+      const g = currentTable();
+      const archive = replayArchiveRound(g);
+      if (!archive) return toast("本局没有可用回放");
+      state.replayView[currentPlayer] = archive.id;
+      archive.replay.pos = 0;
+      modalReplay(0);
+    }
+
+    function setReplayPreviewPos(archive, delta = 0, absolute = null) {
+      const max = archive.replay.steps.length;
+      const target = absolute == null ? (archive.replay.pos ?? 0) + delta : absolute;
+      archive.replay.pos = Math.max(0, Math.min(max, Math.floor(Number(target) || 0)));
+      return max;
+    }
+
+    function replayPreviewBodyHtml(archive) {
+      const max = archive.replay.steps.length;
+      const st = replayBuildState(archive, archive.replay.pos);
+      let body = `<div class="bold">第 ${archive.replay.pos} / ${max} 步：${esc(st.desc)}</div>`;
+      body += `<div class="flow top-info" style="margin-top:10px"><span>底牌：</span>`;
+      body += st.bottomVisible
+        ? st.bottom.map((c, i) => cardHtml(c, {small:true, textYellow:!!st.bottomPlayed[i], played:!!st.bottomPlayed[i]})).join("")
+        : st.bottom.map(c => backCardHtml({small:true, card:c})).join("");
+      if (st.last) body += `<span class="muted">&nbsp;|&nbsp;</span><span>当前牌：${esc(replayName(archive, st.last.by))} ${esc(TYPE_NAMES[st.last.tp] || st.last.tp || "牌")}</span>${overlapCardsHtml(st.last.cards, {small:true, overlap:100})}`;
+      body += `</div><div class="line"></div>`;
+      for (const pid of st.order) {
+        const role = st.landlord ? (pid === st.landlord ? `<span class="yellow">地主</span>` : "农民") : `<span class="muted">未定</span>`;
+        const hand = st.hands[pid] || [];
+        const arrow = pid === st.actor ? `<span class="yellow">▶ </span>` : `<span>&nbsp;&nbsp;&nbsp;</span>`;
+        body += `<div class="bold" style="margin-top:8px">${arrow}${esc(replayName(archive, pid))} [${role}] ${hand.length}张</div><div class="played">${overlapCardsHtml(hand, {small:true, overlap:100})}</div>`;
+      }
+      return body;
+    }
+
+    function refreshReplayPreview(delta = 0, absolute = null, skipSlider = false) {
+      const id = state.replayView?.[currentPlayer];
+      const archive = id && state.replayArchive?.[id];
+      if (!archive?.replay?.start) return toast("这局回放已经不在最近3局里");
+      setReplayPreviewPos(archive, delta, absolute);
+      const body = $("replayContent");
+      if (!body) return modalReplay(0, archive.replay.pos);
+      body.innerHTML = replayPreviewBodyHtml(archive);
+      const input = $("replayJumpInput");
+      if (input) input.value = archive.replay.pos;
+      const slider = $("replaySlider");
+      if (slider && !skipSlider) slider.value = archive.replay.pos;
+      saveState();
+    }
+
+    function modalReplay(delta = 0, absolute = null) {
+      const id = state.replayView?.[currentPlayer];
+      const archive = id && state.replayArchive?.[id];
+      if (!archive?.replay?.start) return toast("这局回放已经不在最近3局里");
+      const max = setReplayPreviewPos(archive, delta, absolute);
+      let body = `<div id="replayContent">${replayPreviewBodyHtml(archive)}</div>`;
+      body += `<div class="line"></div><div class="flow">
+        <button class="factorio-button" data-action="replayPrev">上一步</button>
+        <button class="factorio-button" data-action="replayNext">下一步</button>
+        <button class="factorio-button" data-action="replayLast">最后一步</button>
+        <button class="factorio-button" data-action="exportReplay">导出回放</button>
+        <button class="factorio-button" data-action="modalClose">关闭</button>
+      </div>
+      <div class="flow" style="margin-top:8px">
+        <span>跳到第</span>
+        <input id="replayJumpInput" type="number" min="0" max="${max}" value="${archive.replay.pos}" style="width:64px">
+        <button class="factorio-button" data-action="replayJump">跳转</button>
+        <input id="replaySlider" type="range" min="0" max="${Math.max(1,max)}" value="${archive.replay.pos}" style="width:520px">
+      </div>`;
+      openModal("斗地主 · 回放", body, 820);
+      saveState();
+    }
+
+    function replayExportText(archive) {
+      const rp = archive?.replay;
+      if (!rp?.start) return null;
+      const lines = [
+        "斗地主回放导出",
+        "导出玩家：" + pname(currentPlayer),
+        "桌号：" + (archive.tid ?? "?"),
+        "回放ID：" + (archive.id ?? "?"),
+        "",
+        "玩家"
+      ];
+      for (const pid of rp.start.order || []) lines.push("- " + replayName(archive, pid));
+      lines.push("", "初始手牌");
+      for (const pid of rp.start.order || []) {
+        lines.push(`${replayName(archive, pid)}: ${cardsText(rp.start.hands?.[pid])}`);
+      }
+      lines.push("底牌：" + cardsText(rp.start.bottom || []), "", "步骤", "[0] 发牌完成，进入叫分。");
+      (rp.steps || []).forEach((step, idx) => {
+        const n = idx + 1;
+        if (step.type === "bid") {
+          lines.push(`[${n}] ${replayName(archive, step.player)} ${step.value === 0 ? "不叫" : `叫${step.value}分`}`);
+        } else if (step.type === "landlord") {
+          lines.push(`[${n}] ${replayName(archive, step.player)} 成为地主，获得底牌：${cardsText(step.bottom || [])}`);
+        } else if (step.type === "play") {
+          lines.push(`[${n}] ${replayName(archive, step.player)} 出牌 [${TYPE_NAMES[step.tp] || "牌"}]：${cardsText(step.cards || [])}`);
+        } else if (step.type === "pass") {
+          lines.push(`[${n}] ${replayName(archive, step.player)} 跳过`);
+        } else if (step.type === "over") {
+          lines.push(`[${n}] 游戏结束：${step.msg || "游戏结束。"}`);
+        }
+      });
+      return lines.join("\n");
+    }
+
+    function cardsText(cards) {
+      const parts = (cards || []).map(cardLabel);
+      return parts.length ? parts.join(" ") : "（无）";
+    }
+
+    function downloadText(filename, text) {
+      const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }
+
+    function exportReplay() {
+      let archive = null;
+      const viewId = state.replayView?.[currentPlayer];
+      if (viewId) {
+        archive = state.replayArchive?.[viewId];
+        if (!archive) return toast("这局回放已经不在最近3局里");
+      } else {
+        archive = replayArchiveRound(currentTable());
+      }
+      const text = replayExportText(archive);
+      if (!text) return toast("本局没有可用回放");
+      downloadText(`ddz_replay_${archive.tid ?? "x"}_${archive.id ?? "x"}.txt`, text);
+      toast("回放已导出");
+    }
+
+    function newTable() {
+      if (state.seat[currentPlayer]) return;
+      const tid = allocTid();
+      state.tables[tid] = {
+        tid, phase:"waiting", order:[currentPlayer], ready:{[currentPlayer]:false},
+        hands:{}, bottom:[], playedBottom:{}, landlord:null, bidTurn:1, bidVal:0, bidWho:null,
+        bidsDone:0, bidStatus:{}, bidPending:false, bidPendingWho:null, redealPending:false,
+        playTurn:1, last:null, passes:0, sel:{}, msg:{}, overMsg:"", nextReady:{},
+        lastPlayBy:{}, passBy:{}, playedCards:{}, playedSuits:{}, replay:null, finalPlay:null
+      };
+      state.seat[currentPlayer] = tid;
+      saveAndRender();
+    }
+
+    function allocTid() {
+      let tid = 1;
+      while (state.tables[tid]) tid++;
+      return tid;
+    }
+
+    function allocAi(g) {
+      const used = new Set(g.order.filter(isAi).map(id => state.aiNames[id]));
+      const slotName = AI_SLOT_NAMES.find(n => !used.has(n));
+      if (!slotName) return null;
+      const id = state.nextAiId--;
+      state.aiNames[id] = slotName;
+      return id;
+    }
+
+    function joinTable(tid) {
+      const g = state.tables[tid];
+      if (!g || state.seat[currentPlayer] || g.order.length >= 3) return;
+      if (g.phase === "over") {
+        delete state.spectating[currentPlayer];
+        g.order.push(currentPlayer);
+        g.nextReady ||= {};
+        g.nextReady[currentPlayer] = true;
+        state.seat[currentPlayer] = Number(tid);
+        startNextRoundIfReady(g);
+        saveAndRender();
+        return;
+      } else if (g.phase !== "waiting") {
+        return;
+      }
+      delete state.spectating[currentPlayer];
+      g.order.push(currentPlayer);
+      g.ready[currentPlayer] = false;
+      state.seat[currentPlayer] = Number(tid);
+      saveAndRender();
+    }
+
+    function leaveTable(closePanel = false) {
+      const g = currentTable();
+      if (!g) return;
+      const pid = currentPlayer;
+      if (g.phase === "bidding" || g.phase === "playing") {
+        recordEscape(pid, g);
+        clearTableTrustees(g);
+        g.phase = "over";
+        g.overMsg = `${pname(pid)} 退出了游戏，本局结束。`;
+        replayRecordOver(g, g.overMsg);
+      }
+      g.order = g.order.filter(id => id !== pid);
+      delete state.seat[pid];
+      delete g.ready[pid];
+      if (g.nextReady) delete g.nextReady[pid];
+      delete state.trustees[pid];
+      if (!g.order.some(id => !isAi(id))) destroyTable(g.tid);
+      if (closePanel) {
+        saveState();
+        $("app").innerHTML = "";
+        return;
+      }
+      saveAndRender();
+    }
+
+    function quitGame() {
+      const g = currentTable();
+      if (!g || !(g.phase === "bidding" || g.phase === "playing")) return;
+      openQuitConfirm();
+    }
+
+    function confirmQuitGame() {
+      const g = currentTable();
+      if (!g || !(g.phase === "bidding" || g.phase === "playing")) {
+        closeModal();
+        return;
+      }
+      recordEscape(currentPlayer, g);
+      clearTableTrustees(g);
+      g.phase = "over";
+      g.overMsg = `${pname(currentPlayer)} 退出了游戏，本局结束。`;
+      replayRecordOver(g, g.overMsg);
+      closeModal();
+      saveAndRender();
+    }
+
+    function openQuitConfirm() {
+      const g = currentTable();
+      if (!g) return;
+      const allReal = g.order.length === 3 && g.order.every(id => !isAi(id));
+      const msg = allReal
+        ? "游戏尚未结束，确认要退出吗？\n退出会记录为逃跑，并影响战绩统计。"
+        : "游戏尚未结束，确认要退出吗？";
+      openModal("确认", `<div style="white-space:pre-line">${esc(msg)}</div>
+        <div class="flow" style="margin-top:12px">
+          <button class="factorio-button" data-action="modalClose">返回</button>
+          <button class="factorio-button danger" data-action="quitConfirm">退出</button>
+        </div>`, 320);
+    }
+
+    function destroyTable(tid) {
+      const g = state.tables[tid];
+      if (g) for (const id of g.order) if (isAi(id)) delete state.aiNames[id];
+      delete state.tables[tid];
+      for (const [pid, seatedTid] of Object.entries(state.seat)) {
+        if (Number(seatedTid) === Number(tid)) delete state.seat[pid];
+      }
+      for (const [pid, watchTid] of Object.entries(state.spectating || {})) {
+        if (Number(watchTid) === Number(tid)) delete state.spectating[pid];
+      }
+    }
+
+    function watchTable(tid) {
+      const g = state.tables[tid];
+      if (!g || g.phase === "waiting" || state.seat[currentPlayer]) return;
+      state.spectating ||= {};
+      state.spectating[currentPlayer] = Number(tid);
+      saveAndRender();
+    }
+
+    function closeWatch() {
+      if (state.spectating) delete state.spectating[currentPlayer];
+      saveAndRender();
+    }
+
+    function clearTableTrustees(g) {
+      state.trustees ||= {};
+      for (const id of g?.order || []) if (!isAi(id)) delete state.trustees[id];
+    }
+
+    function resetTableToWaiting(g) {
+      if (!g) return;
+      clearTableTrustees(g);
+      Object.assign(g, {
+        phase:"waiting",
+        ready:{},
+        nextReady:{},
+        hands:{},
+        bottom:[],
+        playedBottom:{},
+        landlord:null,
+        bidTurn:1,
+        bidVal:0,
+        bidWho:null,
+        bidsDone:0,
+        bidStatus:{},
+        bidPending:false,
+        bidPendingWho:null,
+        redealPending:false,
+        playTurn:1,
+        last:null,
+        passes:0,
+        sel:{},
+        msg:{},
+        overMsg:"",
+        lastPlayBy:{},
+        passBy:{},
+        playedCards:{},
+        finalPlay:null
+      });
+    }
+
+    function allNextReady(g) {
+      if (!g || g.phase !== "over" || !g.order.length) return false;
+      let realCount = 0;
+      for (const id of g.order) {
+        if (isAi(id)) continue;
+        realCount++;
+        if (!g.nextReady?.[id]) return false;
+      }
+      return realCount > 0;
+    }
+
+    function startNextRoundIfReady(g) {
+      if (!allNextReady(g)) return false;
+      resetTableToWaiting(g);
+      for (const id of g.order) g.ready[id] = isAi(id);
+      maybeStart(g);
+      return true;
+    }
+
+    function ready() {
+      const g = currentTable();
+      if (!g || g.phase !== "waiting") return;
+      g.ready[currentPlayer] = !g.ready[currentPlayer];
+      maybeStart(g);
+      saveAndRender();
+    }
+
+    function addAi() {
+      const g = currentTable();
+      if (!g || g.phase !== "waiting" || g.order.length >= 3) return;
+      const ai = allocAi(g);
+      if (!ai) return;
+      g.order.push(ai);
+      g.ready[ai] = true;
+      maybeStart(g);
+      saveAndRender();
+    }
+
+    function kickAi(seat) {
+      const g = currentTable();
+      if (!g || g.phase !== "waiting") return;
+      const id = g.order[seat - 1];
+      if (!isAi(id)) return;
+      g.order.splice(seat - 1, 1);
+      delete state.aiNames[id];
+      delete g.ready[id];
+      saveAndRender();
+    }
+
+    function maybeStart(g) {
+      if (g.order.length === 3 && g.order.every(id => g.ready[id])) startBidding(g);
+    }
+
+    function deal(g) {
+      const deck = createDeck();
+      shuffle(deck);
+      g.hands = {};
+      for (const id of g.order) g.hands[id] = [];
+      for (let i = 0; i < 51; i++) g.hands[g.order[i % 3]].push(deck[i]);
+      g.bottom = [cardCopy(deck[51]), cardCopy(deck[52]), cardCopy(deck[53])];
+      g.playedBottom = {};
+      g.playedSuits = {};
+      for (const id of g.order) sortHand(g.hands[id]);
+    }
+
+    function startBidding(g) {
+      g.phase = "bidding";
+      g.bidTurn = 1;
+      g.bidVal = 0;
+      g.bidWho = null;
+      g.bidsDone = 0;
+      g.bidStatus = {};
+      g.bidPending = false;
+      g.redealPending = false;
+      g.finalPlay = null;
+      deal(g);
+      replayInit(g);
+      queueAi();
+    }
+
+    function bid(val) {
+      const g = currentTable();
+      if (!g || g.phase !== "bidding" || g.order[g.bidTurn - 1] !== currentPlayer || g.bidPending || g.redealPending) return;
+      doBid(g, currentPlayer, val);
+      saveAndRender();
+    }
+
+    function doBid(g, pid, val) {
+      if (g.order[g.bidTurn - 1] !== pid) return;
+      g.bidsDone++;
+      g.bidStatus[pid] = val;
+      replayRecordBid(g, pid, val);
+      if (val > 0 && val > g.bidVal) {
+        g.bidVal = val;
+        g.bidWho = pid;
+      }
+      if (val === 3) {
+        setBidPending(g, pid);
+        return;
+      }
+      g.bidTurn = g.bidTurn % 3 + 1;
+      if (g.bidsDone >= 3) {
+        if (g.bidWho) setBidPending(g, g.bidWho);
+        else {
+          setRedealPending(g);
+        }
+      }
+      queueAi();
+    }
+
+    function setRedealPending(g) {
+      g.redealPending = true;
+      saveState();
+      render();
+      setTimeout(() => {
+        const latest = state.tables[g.tid];
+        if (latest && latest.phase === "bidding" && latest.redealPending) {
+          latest.redealPending = false;
+          latest.bidTurn = 1;
+          latest.bidVal = 0;
+          latest.bidWho = null;
+          latest.bidsDone = 0;
+          latest.bidStatus = {};
+          deal(latest);
+          replayInit(latest);
+          queueAi();
+          saveAndRender();
+        }
+      }, 900);
+    }
+
+    function setBidPending(g, winner) {
+      g.bidPending = true;
+      g.bidPendingWho = winner;
+      g.redealPending = false;
+      saveState();
+      render();
+      setTimeout(() => {
+        const latest = state.tables[g.tid];
+        if (latest && latest.phase === "bidding" && latest.bidPending && latest.bidPendingWho === winner) {
+          assignLandlord(latest, winner);
+          saveAndRender();
+        }
+      }, 900);
+    }
+
+    function assignLandlord(g, pid) {
+      g.landlord = pid;
+      g.hands[pid].push(...g.bottom.map(cardCopy));
+      sortHand(g.hands[pid]);
+      g.playTurn = g.order.indexOf(pid) + 1;
+      g.last = null;
+      g.passes = 0;
+      g.sel = {};
+      g.msg = {};
+      g.phase = "playing";
+      g.lastPlayBy = {};
+      g.passBy = {};
+      g.playedCards = {};
+      g.playedSuits = {};
+      g.playedBottom = {};
+      g.bidPending = false;
+      g.redealPending = false;
+      g.bidStatus = {};
+      g.finalPlay = null;
+      replayRecordLandlord(g, pid);
+      queueAi();
+    }
+
+    function toggleCard(i) {
+      const g = currentTable();
+      if (!g || g.phase !== "playing") return;
+      if (!g.sel[currentPlayer]) g.sel[currentPlayer] = {};
+      g.sel[currentPlayer][i] = !g.sel[currentPlayer][i];
+      delete g.msg[currentPlayer];
+      saveAndRender();
+    }
+
+    function playCards() {
+      const g = currentTable();
+      if (!g || g.phase !== "playing" || g.order[g.playTurn - 1] !== currentPlayer) return;
+      if (isTrusted(currentPlayer)) return;
+      const sel = g.sel[currentPlayer] || {};
+      const idxs = Object.keys(sel).filter(k => sel[k]).map(Number).sort((a,b) => a-b);
+      if (!idxs.length) return;
+      const hand = g.hands[currentPlayer] || [];
+      const cards = idxs.map(i => hand[i - 1]).filter(Boolean);
+      const pt = getType(cards);
+      if (!pt) return;
+      if (g.last && g.last.by !== currentPlayer && !canBeat(g.last, pt)) return;
+      doPlay(g, currentPlayer);
+      saveAndRender();
+    }
+
+    function hintCards() {
+      const g = currentTable();
+      if (!g || g.phase !== "playing" || g.order[g.playTurn - 1] !== currentPlayer) return;
+      if (isTrusted(currentPlayer)) return;
+      const hand = g.hands[currentPlayer] || [];
+      const last = g.last && g.last.by !== currentPlayer ? g.last : null;
+      const cards = aiChooseCardsFor(g, currentPlayer, hand, last);
+      if (!cards?.length) return;
+      g.sel[currentPlayer] = {};
+      const used = {};
+      for (const ac of cards) {
+        for (let i = 0; i < hand.length; i++) {
+          if (!used[i] && cardSame(hand[i], ac)) {
+            g.sel[currentPlayer][i + 1] = true;
+            used[i] = true;
+            break;
+          }
+        }
+      }
+      delete g.msg[currentPlayer];
+      saveAndRender();
+    }
+
+    function doPlay(g, pid) {
+      if (g.order[g.playTurn - 1] !== pid) return;
+      const sel = g.sel[pid] || {};
+      const idxs = Object.keys(sel).filter(k => sel[k]).map(Number).sort((a,b) => a-b);
+      if (!idxs.length) {
+        if (!isAi(pid)) g.msg[pid] = "请先点选要出的牌";
+        return;
+      }
+      const hand = g.hands[pid];
+      const cards = idxs.map(i => hand[i - 1]).filter(Boolean);
+      const pt = getType(cards);
+      if (!pt) {
+        if (!isAi(pid)) g.msg[pid] = "不是合法牌型！";
+        g.sel[pid] = {};
+        return;
+      }
+      if (g.last && g.last.by !== pid && !canBeat(g.last, pt)) {
+        if (!isAi(pid)) g.msg[pid] = "出牌不够大！";
+        g.sel[pid] = {};
+        return;
+      }
+      idxs.sort((a,b) => b-a).forEach(i => hand.splice(i - 1, 1));
+      const displayCards = orderPlayCards(cards, pt);
+      g.last = {tp:pt.tp, key:pt.key, n:pt.n, by:pid, cards:displayCards};
+      g.passes = 0;
+      g.sel[pid] = {};
+      delete g.msg[pid];
+      g.lastPlayBy[pid] = displayCards;
+      g.passBy[pid] = false;
+      g.finalPlay = {by:pid, cards:displayCards};
+      replayRecordPlay(g, pid, displayCards);
+      g.playedSuits ||= {};
+      for (const c of displayCards) {
+        g.playedCards[c.val] = (g.playedCards[c.val] || 0) + 1;
+        if (c.suit) {
+          g.playedSuits[c.val] ||= {};
+          g.playedSuits[c.val][c.suit] = (g.playedSuits[c.val][c.suit] || 0) + 1;
+        }
+        g.playedBottom ||= {};
+        for (let bi = 0; bi < (g.bottom || []).length; bi++) {
+          if (!g.playedBottom[bi] && cardSame(c, g.bottom[bi])) {
+            g.playedBottom[bi] = true;
+            break;
+          }
+        }
+      }
+      if (!hand.length) {
+        recordStats(g, pid);
+        const win = pid === g.landlord ? "地主胜！" : "农民胜！";
+        g.overMsg = `${pname(pid)} 出完了牌，${win}`;
+        replayRecordOver(g, g.overMsg);
+        clearTableTrustees(g);
+        g.phase = "over";
+        return;
+      }
+      g.playTurn = g.playTurn % 3 + 1;
+      queueAi();
+    }
+
+    function passCards() {
+      const g = currentTable();
+      if (!g || g.phase !== "playing" || g.order[g.playTurn - 1] !== currentPlayer) return;
+      if (isTrusted(currentPlayer)) return;
+      if (!g.last || g.last.by === currentPlayer) return;
+      doPass(g, currentPlayer);
+      saveAndRender();
+    }
+
+    function doPass(g, pid) {
+      if (g.order[g.playTurn - 1] !== pid) return;
+      if (!g.last || g.last.by === pid) {
+        if (!isAi(pid)) g.msg[pid] = "本轮必须出牌！";
+        return;
+      }
+      g.passes++;
+      g.sel[pid] = {};
+      delete g.msg[pid];
+      delete g.lastPlayBy[pid];
+      g.passBy[pid] = true;
+      replayRecordPass(g, pid);
+      g.playTurn = g.playTurn % 3 + 1;
+      if (g.passes >= 2) {
+        g.last = null;
+        g.passes = 0;
+        g.passBy = {};
+      }
+      queueAi();
+    }
+
+    function queueAi() {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        let acted = false;
+        for (const g of Object.values(state.tables)) {
+          if (g.phase === "bidding" && !g.bidPending && !g.redealPending && isAutoActor(g.order[g.bidTurn - 1])) {
+            const pid = g.order[g.bidTurn - 1];
+            doBid(g, pid, aiChooseBid(g.hands[pid] || [], g.bidVal || 0));
+            acted = true;
+            break;
+          }
+          if (g.phase === "playing" && isAutoActor(g.order[g.playTurn - 1])) {
+            doAiTurn(g);
+            acted = true;
+            break;
+          }
+        }
+        if (acted) saveAndRender();
+      }, 700);
+    }
+
+    function doAiTurn(g) {
+      const pid = g.order[g.playTurn - 1];
+      const hand = g.hands[pid];
+      const last = g.last && g.last.by !== pid ? g.last : null;
+      const cards = aiChooseCardsFor(g, pid, hand, last);
+      if (!cards) {
+        doPass(g, pid);
+        return;
+      }
+      g.sel[pid] = {};
+      const used = {};
+      for (const ac of cards) {
+        for (let i = 0; i < hand.length; i++) {
+          const hc = hand[i];
+          if (!used[i] && hc.rank === ac.rank && hc.suit === ac.suit) {
+            g.sel[pid][i + 1] = true;
+            used[i] = true;
+            break;
+          }
+        }
+      }
+      doPlay(g, pid);
+    }
+
+    function toggleTrust() {
+      const g = currentTable();
+      if (!g || !(g.phase === "bidding" || g.phase === "playing") || isAi(currentPlayer)) return;
+      state.trustees ||= {};
+      if (state.trustees[currentPlayer]) delete state.trustees[currentPlayer];
+      else state.trustees[currentPlayer] = true;
+      g.sel[currentPlayer] = {};
+      delete g.msg[currentPlayer];
+      queueAi();
+      saveAndRender();
+    }
+
+    function longestRun(ranks) {
+      let best = 0, cur = 0, prev = null;
+      for (const r of ranks) {
+        cur = prev !== null && r === prev + 1 ? cur + 1 : 1;
+        best = Math.max(best, cur);
+        prev = r;
+      }
+      return best;
+    }
+
+    function aiBidScore(hand) {
+      const cnt = rankCounts(hand || []);
+      const ranks = sortedKeys(cnt);
+      let score = 0;
+
+      if (cnt[16] && cnt[17]) score += 10;
+      score += (cnt[17] || 0) * 6;
+      score += (cnt[16] || 0) * 5;
+      score += (cnt[15] || 0) * 3;
+      score += (cnt[14] || 0) * 2;
+      score += (cnt[13] || 0);
+
+      let singles = 0;
+      const seqRanks = [], pairRanks = [], tripleRanks = [];
+      for (const r of ranks) {
+        const n = cnt[r];
+        if (n === 4) score += 8;
+        else if (n === 3) score += 4;
+        else if (n === 2) score += 2;
+        else if (n === 1 && r < 15) singles++;
+        if (r < 15) {
+          if (n >= 1) seqRanks.push(r);
+          if (n >= 2) pairRanks.push(r);
+          if (n >= 3) tripleRanks.push(r);
+        }
+      }
+
+      const seqLen = longestRun(seqRanks);
+      if (seqLen >= 5) score += (seqLen - 4) * 2;
+      const pairLen = longestRun(pairRanks);
+      if (pairLen >= 3) score += (pairLen - 2) * 2;
+      const planeLen = longestRun(tripleRanks);
+      if (planeLen >= 2) score += planeLen * 3;
+      if (singles > 5) score -= singles - 5;
+      return score;
+    }
+
+    function aiChooseBid(hand, currentBid = 0) {
+      const score = aiBidScore(hand);
+      let desired = 0;
+      if (score >= 22) desired = 3;
+      else if (score >= 15) desired = 2;
+      else if (score >= 9) desired = 1;
+      return desired > currentBid ? desired : 0;
+    }
+
+    function addCandidate(candidates, cards, last) {
+      const pt = getType(cards || []);
+      if (!pt) return;
+      if (last && !canBeat(last, pt)) return;
+      candidates.push({cards:orderPlayCards(cards, pt), pt});
+    }
+
+    function collectKickers(byr, ranks, need, usedCount = {}, needPair = false) {
+      const out = [];
+      for (const r of ranks) {
+        if ((byr[r] || []).length === 4) continue;
+        const start = usedCount[r] || 0;
+        if (needPair) {
+          if (byr[r].length - start >= 2) {
+            out.push(byr[r][start], byr[r][start + 1]);
+            if (out.length >= need) return out;
+          }
+        } else {
+          for (let i = start; i < byr[r].length; i++) {
+            out.push(byr[r][i]);
+            if (out.length >= need) return out;
+          }
+        }
+      }
+      return out.length >= need ? out : null;
+    }
+
+    function addRunCandidates(candidates, byr, ranks, minLen, count, last) {
+      const usable = ranks.filter(r => r < 15 && byr[r].length >= count && byr[r].length !== 4);
+      for (let i = 0; i < usable.length; i++) {
+        const run = [usable[i]];
+        let j = i + 1;
+        while (j < usable.length && usable[j] === run[run.length - 1] + 1) run.push(usable[j++]);
+        if (run.length >= minLen) {
+          for (let len = minLen; len <= run.length; len++) {
+            for (let s = 0; s <= run.length - len; s++) {
+              addCandidate(candidates, run.slice(s, s + len).flatMap(r => byr[r].slice(0, count)), last);
+            }
+          }
+        }
+      }
+    }
+
+    function collectAiCandidates(hand, last) {
+      sortHand(hand);
+      const byr = {};
+      for (const c of hand) (byr[c.rank] ||= []).push(c);
+      const ranks = sortedKeys(byr);
+      const candidates = [];
+
+      for (const r of ranks) if (byr[r].length !== 4) addCandidate(candidates, [byr[r][0]], last);
+      for (const r of ranks) if (byr[r].length >= 2 && byr[r].length !== 4) addCandidate(candidates, byr[r].slice(0,2), last);
+      for (const r of ranks) if (byr[r].length === 3) addCandidate(candidates, byr[r].slice(0,3), last);
+
+      for (const r of ranks) if (byr[r].length === 3) {
+        const body = byr[r].slice(0,3);
+        const one = collectKickers(byr, ranks, 1, {[r]:3}, false);
+        if (one) addCandidate(candidates, [...body, ...one], last);
+        const pair = collectKickers(byr, ranks, 2, {[r]:3}, true);
+        if (pair) addCandidate(candidates, [...body, ...pair], last);
+      }
+
+      addRunCandidates(candidates, byr, ranks, 5, 1, last);
+      addRunCandidates(candidates, byr, ranks, 3, 2, last);
+
+      const triples = ranks.filter(r => r < 15 && byr[r].length === 3);
+      for (let i = 0; i < triples.length; i++) {
+        const run = [triples[i]];
+        let j = i + 1;
+        while (j < triples.length && triples[j] === run[run.length - 1] + 1) run.push(triples[j++]);
+        for (let len = 2; len <= run.length; len++) {
+          for (let s = 0; s <= run.length - len; s++) {
+            const part = run.slice(s, s + len);
+            const usedCount = Object.fromEntries(part.map(r => [r, 3]));
+            const body = part.flatMap(r => byr[r].slice(0,3));
+            addCandidate(candidates, body, last);
+            const singles = collectKickers(byr, ranks, len, usedCount, false);
+            if (singles) addCandidate(candidates, [...body, ...singles], last);
+            const pairs = collectKickers(byr, ranks, len * 2, usedCount, true);
+            if (pairs) addCandidate(candidates, [...body, ...pairs], last);
+          }
+        }
+      }
+
+      for (const r of ranks) if (byr[r].length >= 4) {
+        const body = byr[r].slice(0,4);
+        const singles = collectKickers(byr, ranks, 2, {[r]:4}, false);
+        if (singles) addCandidate(candidates, [...body, ...singles], last);
+        const pairs = collectKickers(byr, ranks, 4, {[r]:4}, true);
+        if (pairs) addCandidate(candidates, [...body, ...pairs], last);
+        addCandidate(candidates, body, last);
+      }
+      if (byr[16] && byr[17]) addCandidate(candidates, [byr[16][0], byr[17][0]], last);
+
+      return candidates;
+    }
+
+    function sameTeam(g, a, b) {
+      return !!g && !!a && !!b && a !== b && a !== g.landlord && b !== g.landlord;
+    }
+
+    function landlordCardsLeft(g) {
+      return g?.landlord && g.hands ? (g.hands[g.landlord] || []).length : 99;
+    }
+
+    function aiScoreCandidate(g, pid, c, last, handCount) {
+      const pt = c.pt;
+      const n = pt.n || c.cards.length;
+      let score = n * 30 - (pt.key || 0);
+      if (n === handCount) score += 10000;
+      if (last) {
+        score += 1000;
+        const critical = landlordCardsLeft(g) <= 2;
+        if (sameTeam(g, pid, last.by) && n !== handCount) score -= 10000;
+        if (g && last.by === g.landlord) score += 200;
+        if (critical && g && last.by === g.landlord) score += 500;
+        if (pt.tp === "bomb" || pt.tp === "rocket") score += critical ? 300 : -350;
+      } else {
+        if (pt.tp === "single") score += 80;
+        else if (pt.tp === "pair") score += 70;
+        else if (pt.tp === "triple") score += 60;
+        else if (["seq","pseq","plane","plane1","plane2"].includes(pt.tp)) score += 120;
+        else if (pt.tp === "bomb" || pt.tp === "rocket") score -= 500;
+      }
+      return score;
+    }
+
+    function aiChooseCardsFor(g, pid, hand, last) {
+      const candidates = collectAiCandidates(hand || [], last);
+      let best = null, bestScore = -Infinity;
+      for (const c of candidates) {
+        const score = aiScoreCandidate(g, pid, c, last, (hand || []).length);
+        if (score > bestScore) {
+          best = c;
+          bestScore = score;
+        }
+      }
+      if (last && bestScore < -5000) return null;
+      return best?.cards || null;
+    }
+
+    function aiChooseCards(hand, last) {
+      return aiChooseCardsFor(null, null, hand, last);
+    }
+
+    function currentTable() {
+      const tid = state.seat[currentPlayer];
+      return tid ? state.tables[tid] : null;
+    }
+
+    function currentSpectatingTable() {
+      const tid = state.spectating?.[currentPlayer];
+      return tid ? state.tables[tid] : null;
+    }
+
+    function ensureStat(name) {
+      return state.stats[name] ||= {w:0, l:0, e:0};
+    }
+
+    function recordStats(g, winner) {
+      if (g.order.length !== 3 || g.order.some(isAi)) return;
+      const landlordWon = winner === g.landlord;
+      for (const pid of g.order) {
+        const s = ensureStat(pname(pid));
+        const won = (pid === g.landlord) === landlordWon;
+        if (won) s.w++; else s.l++;
+      }
+    }
+
+    function recordEscape(pid, g) {
+      if (isAi(pid)) return;
+      if (g && g.order.some(isAi)) return;
+      ensureStat(pname(pid)).e++;
+    }
+
+    function restart() {
+      const g = currentTable();
+      if (!g || g.phase !== "over") return;
+      g.nextReady ||= {};
+      if (g.nextReady[currentPlayer]) delete g.nextReady[currentPlayer];
+      else g.nextReady[currentPlayer] = true;
+      startNextRoundIfReady(g);
+      saveAndRender();
+    }
+
+    function render() {
+      renderPlayers();
+      const g = currentTable();
+      const wg = currentSpectatingTable();
+      if (!g && wg) renderSpectator(wg);
+      else if (!g) renderLobby();
+      else if (g.phase === "waiting") renderWaiting(g);
+      else if (g.phase === "bidding") renderBidding(g);
+      else if (g.phase === "playing" || g.phase === "over") renderPlaying(g);
+      else renderOver(g);
+      queueAi();
+    }
+
+    function renderPlayers() {
+      const select = $("playerSelect");
+      select.innerHTML = state.players.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join("");
+      if (!state.players.some(p => p.id === currentPlayer)) currentPlayer = state.players[0]?.id || 1;
+      select.value = String(currentPlayer);
+    }
+
+    function shell(title, body, close = true, closeAction = "closeMain", windowClass = "") {
+      return `
+        <section class="window ${windowClass}">
+          <div class="titlebar">
+            <div class="titlebar-title">${esc(title)}</div>
+            <div class="drag-space"></div>
+            ${close ? `<button class="icon-button close" data-action="${closeAction}">×</button>` : ""}
+          </div>
+          <div class="content">${body}</div>
+        </section>`;
+    }
+
+    function renderLobby() {
+      const tids = sortedKeys(state.tables);
+      let body = "";
+      if (!tids.length) {
+        body += `<div class="muted">暂无牌桌，点击下方“开新桌”开始游戏。</div>`;
+      } else {
+        body += `<div class="scroll">`;
+        for (const tid of tids) {
+          const g = state.tables[tid];
+          const phase = g.phase === "waiting" ? `<span class="green">等待中</span>` : g.phase === "over" ? `<span class="muted">结束</span>` : `<span class="yellow">游戏中</span>`;
+          body += `<div class="table-row">
+            <div style="min-width:120px">桌${tid} ${phase}</div>
+            <div class="seat-list">`;
+          for (const id of g.order) {
+            const mark = g.phase === "waiting" ? (g.ready[id] ? `<span class="green">✓</span>` : `<span class="orange">●</span>`) : "";
+            body += `<span>${esc(pname(id))}${mark}</span>`;
+          }
+          for (let i = g.order.length; i < 3; i++) body += `<span class="muted">空</span>`;
+          body += `</div>`;
+          if ((g.phase === "waiting" || g.phase === "over") && g.order.length < 3 && !state.seat[currentPlayer]) {
+            body += `<button class="factorio-button" data-action="join:${tid}">${g.phase === "over" ? "加入下局" : "加入"}</button>`;
+          }
+          if (g.phase !== "waiting" && !state.seat[currentPlayer] && !state.spectating[currentPlayer]) {
+            body += `<button class="factorio-button" data-action="watch:${tid}">观战</button>`;
+          }
+          body += `</div>`;
+        }
+        body += `</div>`;
+      }
+      body += `<div class="line"></div>
+        <div class="flow">
+          <button class="factorio-button" data-action="newTable">开新桌</button>
+          <button class="factorio-button" data-action="stats">查看战绩</button>
+          <button class="factorio-button" data-action="testTool">测试工具</button>
+          <button class="factorio-button" data-action="rules">游戏规则</button>
+          <button class="factorio-button" data-action="notice">注意事项</button>
+          ${soundButtonHtml()}
+          <span style="flex:1"></span>
+          <button class="factorio-button" data-action="about">关于</button>
+        </div>`;
+      $("app").innerHTML = shell("斗地主 · 大厅", body, true, "closeMain", "lobby-window");
+    }
+
+    function renderWaiting(g) {
+      let body = `<div>玩家就绪 (${g.order.length}/3)</div>`;
+      g.order.forEach((id, idx) => {
+        const mark = g.ready[id] ? `<span class="green">已准备</span>` : `<span class="orange">未准备</span>`;
+        body += `<div class="flow" style="margin-top:6px"><span>${idx + 1}号：&nbsp;${esc(pname(id))} ${mark}</span>`;
+        if (isAi(id)) body += `<button class="factorio-button" data-action="kickAi:${idx + 1}">踢出</button>`;
+        body += `</div>`;
+      });
+      for (let i = g.order.length + 1; i <= 3; i++) body += `<div style="margin-top:6px">${i}号：&nbsp;（空）</div>`;
+      body += `<div class="line"></div><div class="flow">`;
+      if (g.order.includes(currentPlayer)) {
+        body += `<button class="factorio-button good" data-action="ready">${g.ready[currentPlayer] ? "取消准备" : "准备"}</button>`;
+      }
+      if (g.order.length < 3) body += `<button class="factorio-button" data-action="addAi">加入AI</button>`;
+      else body += `<button class="factorio-button disabled" data-action="addAiFull">加入AI（已满）</button>`;
+      body += `<button class="factorio-button" data-action="leaveTable">离桌</button>
+        <button class="factorio-button" data-action="rules">游戏规则</button>
+        <button class="factorio-button" data-action="notice">注意事项</button>
+        ${soundButtonHtml()}
+      </div>`;
+      $("app").innerHTML = shell(`斗地主 · 桌${g.tid} · 等待就绪`, body, true, "closeMain", "waiting-window");
+    }
+
+    function renderBidding(g) {
+      let body = `<div class="play-stack">`;
+      g.order.forEach((id, idx) => {
+        const isCur = !g.bidPending && !g.redealPending && g.bidTurn === idx + 1;
+        const isPending = g.bidPending && g.bidPendingWho === id;
+        const bs = g.bidStatus[id];
+        let status;
+        if (isPending && bs > 0) status = `<span class="yellow">叫${bs}分，地主确认中...</span>`;
+        else if (isPending) status = `<span class="yellow">地主确认中...</span>`;
+        else if (bs == null) status = isCur ? "叫分中..." : `<span class="muted">等待...</span>`;
+        else status = bs === 0 ? `<span class="muted">不叫</span>` : `<span class="yellow">叫${bs}分</span>`;
+        body += `<div class="seat-card wide ${isCur || isPending ? "playing" : ""}">
+          <div class="${isCur || isPending ? "bold" : ""}">${isCur || isPending ? `<span class="yellow">▶</span> ` : "&nbsp;&nbsp;&nbsp;"}${esc(pname(id))} <span class="blue">${(g.hands[id] || []).length}张</span></div>
+          <div>${status}</div>
+        </div>`;
+      });
+      body += `</div>
+        <div class="flow" style="margin-top:10px"><span>底牌：</span>${(g.bottom || []).map(c => backCardHtml({card:c})).join("")}</div>
+        <div class="line"></div>
+        <div>你的手牌：（${(g.hands[currentPlayer] || []).length}张）</div>
+        <div class="hand">${overlapCardsHtml(g.hands[currentPlayer] || [], {overlap:100})}</div>
+        <div class="line"></div>`;
+      if (g.redealPending) {
+        body += `<div class="yellow">三人都不叫，马上重新发牌</div>`;
+      } else if (g.bidPending) {
+        body += `<div class="yellow">${esc(pname(g.bidPendingWho))}成为地主，马上开始出牌</div>`;
+      } else if (g.order[g.bidTurn - 1] === currentPlayer && isTrusted(currentPlayer)) {
+        body += `<div class="yellow">托管中，AI将自动叫分...</div>`;
+      } else if (g.order[g.bidTurn - 1] === currentPlayer) {
+        body += `<div class="flow">
+          <button class="factorio-button" data-action="bid:0">不叫</button>
+          ${g.bidVal < 1 ? `<button class="factorio-button" data-action="bid:1">叫1分</button>` : ""}
+          ${g.bidVal < 2 ? `<button class="factorio-button" data-action="bid:2">叫2分</button>` : ""}
+          ${g.bidVal < 3 ? `<button class="factorio-button" data-action="bid:3">叫3分</button>` : ""}
+        </div>`;
+      } else {
+        body += `<div>等待 ${esc(pname(g.order[g.bidTurn - 1]))} 叫分...</div>`;
+      }
+      body += `<div class="line"></div><div class="play-actions">
+        <button class="factorio-button" data-action="trust">${isTrusted(currentPlayer) ? "取消托管" : "托管"}</button>
+        <button class="factorio-button" data-action="rules">游戏规则</button>
+        ${soundButtonHtml()}
+        <button class="factorio-button danger" data-action="quit">退出（结束本局）</button>
+      </div>`;
+      $("app").innerHTML = shell(`斗地主 · 桌${g.tid} · 叫地主`, body, false, "closeMain", "bid-window");
+    }
+
+    function gameOverPanelHtml(g) {
+      const rows = g.order.map(id => {
+        const status = isAi(id) ? `<span class="green">AI自动准备</span>` : (g.nextReady?.[id] ? `<span class="green">已确认</span>` : `<span class="orange">等待确认</span>`);
+        return `<div>${esc(pname(id))} ${status}</div>`;
+      }).join("");
+      return `<div style="margin-top:8px;padding:6px;border:1px solid #555;background:var(--panel-3)">
+        <div class="bold">${esc(g.overMsg)}</div>
+        <div class="line"></div>
+        <div class="bold">下一局确认：</div>
+        <div>${rows}</div>
+        <div class="flow" style="margin-top:10px">
+          ${g.replay ? `<button class="factorio-button" data-action="replayOpen">查看回放</button>` : ""}
+          ${g.replay ? `<button class="factorio-button" data-action="exportReplay">导出回放</button>` : ""}
+          <button class="factorio-button" data-action="restart">${g.nextReady?.[currentPlayer] ? "取消下一局" : "再来一局"}</button>
+          ${soundButtonHtml()}
+          <button class="factorio-button" data-action="leaveTable">离桌</button>
+        </div>
+      </div>`;
+    }
+
+    function renderPlaying(g) {
+      const isOver = g.phase === "over";
+      const turnPlayer = g.order[g.playTurn - 1];
+      const hand = g.hands[currentPlayer] || [];
+      const selectedCards = Object.keys(g.sel[currentPlayer] || {})
+        .filter(k => g.sel[currentPlayer][k])
+        .map(k => hand[Number(k) - 1])
+        .filter(Boolean);
+      const selfPlay = isOver
+        ? (g.finalPlay?.by === currentPlayer && g.finalPlay.cards?.length ? g.finalPlay.cards : null)
+        : (g.lastPlayBy[currentPlayer]?.length ? g.lastPlayBy[currentPlayer] : null);
+
+      const myCounts = {};
+      const mySuits = {};
+      for (const c of hand) {
+        myCounts[c.val] = (myCounts[c.val] || 0) + 1;
+        if (c.suit) {
+          (mySuits[c.val] ||= {})[c.suit] = (mySuits[c.val]?.[c.suit] || 0) + 1;
+        }
+      }
+
+      let body = `<div class="top-info">${(g.bottom || []).map((c, i) => cardHtml(c, {small:true, textYellow:!!g.playedBottom?.[i], played:!!g.playedBottom?.[i]})).join("")}</div><div class="line"></div>`;
+      body += `<div class="opponent-list">`;
+      for (const id of g.order) {
+        if (id === currentPlayer) continue;
+        const isCur = !isOver && turnPlayer === id;
+        const role = g.landlord ? (id === g.landlord ? `<span class="yellow">地主</span>` : "农民") : "未定";
+        const remain = Math.max(0, (g.hands[id] || []).length);
+        const lastPlay = isOver && g.finalPlay?.by === id && g.finalPlay.cards?.length
+          ? g.finalPlay.cards
+          : (!isOver && g.passBy[id]) ? null
+          : (!isOver && g.lastPlayBy[id]?.length) ? g.lastPlayBy[id] : null;
+        const hiddenSide = isOver
+          ? overlapCardsHtml(g.hands[id] || [], {small:true, overlap:100})
+          : backCardsHtml(remain, {small:true, overlap:92});
+        body += `<div class="seat-card wide ${isCur ? "playing" : ""}">
+          <div class="${isCur ? "bold" : ""}">${isCur ? `<span class="yellow">▶</span> ` : "&nbsp;&nbsp;&nbsp;"}${esc(pname(id))} [${role}] <span class="blue">${remain}张</span></div>
+          <div class="player-row">
+            <div class="player-left clipped">${hiddenSide}</div>
+            <div class="player-right clipped">`;
+        if (lastPlay && lastPlay.length) body += overlapCardsHtml(lastPlay, {small:true, overlap:100});
+        else if (!isOver && g.passBy[id]) body += `<span class="muted">跳过</span>`;
+        else body += `<span class="muted">—</span>`;
+        body += `</div></div></div>`;
+      }
+      body += `</div><div class="line"></div>`;
+      let selfStatus = "";
+      if (isOver) {
+        selfStatus = `<span class="muted">本局已结束</span>`;
+      } else if (turnPlayer === currentPlayer && isTrusted(currentPlayer)) {
+        selfStatus = `<span class="yellow">托管中，AI将自动出牌...</span>`;
+      } else if (turnPlayer === currentPlayer) {
+        if (selectedCards.length) {
+          const type = getType(selectedCards);
+          selfStatus = type ? `<span class="green">[${esc(TYPE_NAMES[type.tp] || type.tp)}]</span>` : `<span class="red">[无效牌型]</span>`;
+        } else {
+          selfStatus = `<span class="muted">请选择要出的牌</span>`;
+        }
+      } else {
+        selfStatus = `<span>等待 ${esc(pname(turnPlayer))} 出牌...</span>`;
+      }
+      const selfRole = g.landlord ? (currentPlayer === g.landlord ? `<span class="yellow">地主</span>` : "农民") : "未定";
+      const selfArrow = !isOver && turnPlayer === currentPlayer ? `<span class="yellow">▶</span> ` : "&nbsp;&nbsp;&nbsp;";
+      selfStatus = `<span class="${!isOver && turnPlayer === currentPlayer ? "bold" : ""}">${selfArrow}${esc(pname(currentPlayer))} [${selfRole}] <span class="blue">${hand.length}张</span></span>${selfStatus}`;
+      if (g.msg[currentPlayer]) selfStatus += `<span class="red">${esc(g.msg[currentPlayer])}</span>`;
+      body += `<div class="self-panel">
+        <div class="self-status">${selfStatus}</div>
+        <div class="self-main">
+          <div class="self-left ${hand.length ? "" : "empty"}">
+          ${hand.length ? `<div class="hand">${overlapCardsHtml(hand, isOver ? {overlap:100} : {
+            overlap:100,
+            selected:(idx) => !!g.sel[currentPlayer]?.[idx + 1],
+            name:(idx) => `card:${idx + 1}`
+          })}</div>` : ""}
+          </div>
+          <div class="self-right">
+          <div class="played">${selfPlay && selfPlay.length ? overlapCardsHtml(selfPlay, {small:true, overlap:100}) : `<span class="muted">—</span>`}</div>
+          </div>
+        </div>`;
+      if (!isOver) {
+        body += `<div class="self-command-row">
+          <button class="factorio-button" data-action="hint">提示</button>
+          <button class="factorio-button" data-action="play">出牌</button>
+          <button class="factorio-button" data-action="pass">跳过</button>
+          <button class="factorio-button" data-action="tracker">记牌器</button>
+        </div>
+        <div class="self-command-row">
+          <button class="factorio-button" data-action="trust">${isTrusted(currentPlayer) ? "取消托管" : "托管"}</button>
+          <button class="factorio-button" data-action="rules">游戏规则</button>
+          ${soundButtonHtml()}
+          <button class="factorio-button danger" data-action="quit">退出（结束本局）</button>
+        </div>`;
+      }
+      body += `</div>`;
+      if (isOver) {
+        body += gameOverPanelHtml(g);
+        $("app").innerHTML = shell(`斗地主 · 桌${g.tid}`, body, false, "closeMain", "play-window");
+        return;
+      }
+      $("app").innerHTML = shell(`斗地主 · 桌${g.tid}`, body, false, "closeMain", "play-window");
+    }
+    function renderOver(g) {
+      renderPlaying(g);
+    }
+
+    function renderSpectator(g) {
+      let body = `<div class="top-info">`;
+      body += (g.bottom || []).map((c, i) => cardHtml(c, {small:true, textYellow:!!g.playedBottom?.[i], played:!!g.playedBottom?.[i]})).join("");
+      body += `</div><div class="line"></div><div class="opponent-list">`;
+      for (const id of g.order) {
+        const isCur = (g.phase === "playing" && g.order[g.playTurn - 1] === id) || (g.phase === "bidding" && !g.bidPending && !g.redealPending && g.order[g.bidTurn - 1] === id);
+        const role = g.landlord ? (id === g.landlord ? `<span class="yellow">地主</span>` : "农民") : "未定";
+        const remain = Math.max(0, (g.hands[id] || []).length);
+        const hiddenSide = g.phase === "over"
+          ? overlapCardsHtml(g.hands[id] || [], {small:true, overlap:100})
+          : backCardsHtml(remain, {small:true, overlap:92});
+        const lastPlay = g.phase === "over" && g.finalPlay?.by === id && g.finalPlay.cards?.length
+          ? g.finalPlay.cards
+          : (g.lastPlayBy[id]?.length ? g.lastPlayBy[id] : null);
+        body += `<div class="seat-card wide ${isCur ? "playing" : ""}">
+          <div class="${isCur ? "bold" : ""}">${isCur ? `<span class="yellow">▶</span> ` : "&nbsp;&nbsp;&nbsp;"}${esc(pname(id))} [${role}] <span class="blue">${remain}张</span></div>
+          <div class="player-row">
+            <div class="player-left">${hiddenSide}</div>
+            <div class="player-right">`;
+        if (g.passBy[id]) body += `<span class="muted">跳过</span>`;
+        else if (lastPlay?.length) body += overlapCardsHtml(lastPlay, {small:true, overlap:100});
+        else body += `<span class="muted">—</span>`;
+        body += `</div></div></div>`;
+      }
+      body += `</div><div class="line"></div><div class="play-actions">
+        <button class="factorio-button" data-action="watchClose">退出观战</button>
+        <button class="factorio-button" data-action="rules">游戏规则</button>
+        ${soundButtonHtml()}
+      </div>`;
+      $("app").innerHTML = shell(`斗地主 · 桌${g.tid} · 观战`, body, true, "watchClose", "play-window");
+    }
+    function openModal(title, body, width = 520) {
+      $("modal").innerHTML = `<section class="modal-window" style="min-width:min(${width}px, calc(100vw - 32px))">
+        <div class="titlebar">
+          <div class="titlebar-title">${esc(title)}</div>
+          <div class="drag-space"></div>
+          <button class="icon-button close" data-action="modalClose">×</button>
+        </div>
+        <div class="content">${body}</div>
+      </section>`;
+      $("modal").classList.add("show");
+    }
+
+    function closeModal() {
+      if (state.replayView?.[currentPlayer]) {
+        delete state.replayView[currentPlayer];
+        replayCleanupArchive();
+        saveState();
+      }
+      $("modal").classList.remove("show");
+      $("modal").innerHTML = "";
+    }
+
+    function openTracker() {
+      const g = currentTable();
+      if (!g || (g.phase !== "playing" && g.phase !== "over")) return;
+      const hand = g.hands[currentPlayer] || [];
+      const myCounts = {};
+      const mySuits = {};
+      for (const c of hand) {
+        myCounts[c.val] = (myCounts[c.val] || 0) + 1;
+        if (c.suit) {
+          (mySuits[c.val] ||= {})[c.suit] = (mySuits[c.val]?.[c.suit] || 0) + 1;
+        }
+      }
+      openModal("记牌器", trackerTableHtml(g, myCounts, mySuits), 680);
+    }
+
+    function modalRules() {
+      const rows = [
+        ["【目标】", "地主先出完手牌则地主胜，任意农民先出完则农民胜。"],
+        ["【发牌】", "54张牌（含大小王），每人17张，底牌3张归地主。"],
+        ["【叫地主】", "依次叫1/2/3分或不叫。叫3分立即成为地主；三人均不叫则重新发牌。"],
+        ["【出牌顺序】", "地主先出，之后按座位顺序轮流出牌。下家需出更大的同类牌型，或用炸弹/火箭压制。连续两人跳过后，出牌者可自由出任意牌型。"],
+        ["【牌型】", ""],
+        ["  单张", "任意一张"],
+        ["  对子", "两张相同点数"],
+        ["  三张", "三张相同点数"],
+        ["  三带一", "三张 + 任意单张"],
+        ["  三带二", "三张 + 任意一对"],
+        ["  顺子", "至少5张连续单张（3~A，不含2和王）"],
+        ["  连对", "至少3对连续对子（3~A，不含2和王）"],
+        ["  飞机", "至少2组连续三张"],
+        ["  飞机带单", "飞机 + 每组配一张单牌"],
+        ["  飞机带对", "飞机 + 每组配一对"],
+        ["  四带两单", "四张同点 + 任意2张单牌"],
+        ["  四带两对", "四张同点 + 任意2对"],
+        ["  炸弹", "四张相同点数，可压任意非炸弹/火箭牌型"],
+        ["  火箭", "大王 + 小王，最大牌型"],
+        ["【点数大小】", "大王 > 小王 > 2 > A > K > Q > J > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3"],
+        ["【牌型大小】", "火箭 > 炸弹 > 同类型比较最大点数（张数须相同）"]
+      ];
+      openModal("游戏规则", `<div class="rules-grid">${rows.map(([a,b]) => `<div class="bold">${esc(a)}</div><div>${esc(b)}</div>`).join("")}</div>`, 500);
+    }
+
+    function modalNotice() {
+      const rows = [
+        ["【准备超时】", "Factorio版入座后30秒内未准备会自动离桌。浏览器版不强制踢出，方便你慢慢测试。"],
+        ["【叫分超时】", "Factorio版30秒未操作会进入托管，并由AI接管叫分。浏览器版AI会自动操作，真人可手动切换当前玩家。"],
+        ["【出牌超时】", "Factorio版30秒未操作会进入托管，并由AI接管出牌。浏览器版保留按钮行为，不自动代替真人。"],
+        ["【逃跑记录】", "仅3位真实玩家对局中点击“退出（结束本局）”或中途离开会记录逃跑；有AI参与的对局不计逃跑。"],
+        ["【战绩计算】", "仅3位真实玩家完整打完的对局计入胜负；有AI参与的对局不计胜负。"]
+      ];
+      openModal("斗地主 · 注意事项", `<div class="rules-grid">${rows.map(([a,b]) => `<div class="bold">${esc(a)}</div><div style="white-space:pre-line">${esc(b)}</div>`).join("")}</div>`, 470);
+    }
+
+    function modalStats() {
+      const rows = Object.entries(state.stats).map(([name,s]) => {
+        const total = (s.w || 0) + (s.l || 0);
+        const rate = total ? `${Math.round((s.w || 0) / total * 1000) / 10}%` : "—";
+        return {name, s, total, rateNum: total ? (s.w || 0) / total : 0, rate};
+      }).sort((a,b) => b.rateNum - a.rateNum);
+      let body = "";
+      if (!rows.length) body = `<div>暂无战绩（仅3位真实玩家的完整对局会被统计）</div>`;
+      else {
+        body = `<div class="stats-row bold"><div>玩家</div><div>胜</div><div>负</div><div>逃跑</div><div>总场次</div><div>胜率</div></div><div class="line"></div>
+          <div class="scroll">${rows.map(r => `<div class="stats-row"><div>${esc(r.name)}</div><div>${r.s.w || 0}</div><div>${r.s.l || 0}</div><div class="${(r.s.e || 0) ? "red" : ""}">${r.s.e || 0}</div><div>${r.total}</div><div>${r.rate}</div></div>`).join("")}</div>
+          <div class="line"></div><div class="muted">胜/负仅统计3位真实玩家的完整对局；逃跑仅统计3位真实玩家对局中的退出或离开，有AI参与不计逃跑。</div>`;
+      }
+      openModal("斗地主 · 战绩统计", body, 470);
+    }
+
+    function modalAbout() {
+      const rows = state.feedback.map((fb, i) => `<div class="feedback-item" style="padding:6px;margin-top:6px">
+        <div class="flow"><span class="yellow">${esc(fb.player)}</span><span class="muted">${esc(fb.time)}</span><span style="flex:1"></span>
+        ${fb.player === pname(currentPlayer) ? `<button class="factorio-button" data-action="fbDelete:${i}">删除</button>` : ""}</div>
+        <div style="margin-top:4px;white-space:pre-wrap">${esc(fb.text)}</div>
+      </div>`).join("");
+      openModal("关于", `<div class="bold" style="margin-bottom:8px">由QQ群 1101554578 的伙伴制作</div>
+        <div class="flow">
+          <button class="factorio-button" data-action="qr">扫码加QQ群</button>
+          <button class="factorio-button" data-action="discordQr">扫码加Discord</button>
+        </div>
+        <div class="flow" style="margin-top:4px">
+          <button class="factorio-button" data-action="exportQqQrSvg">导出QQ群二维码</button>
+          <button class="factorio-button" data-action="exportDiscordQrPng">导出Discord二维码</button>
+        </div>
+        <div class="line"></div>
+        <div>写下你的反馈（将保存在本浏览器中）：</div>
+        <textarea id="feedbackText"></textarea>
+        <div class="flow" style="margin-top:8px">
+          <button class="factorio-button" data-action="fbSave">保存反馈</button>
+          <button class="factorio-button" data-action="exportFeedback">导出反馈</button>
+        </div>
+        ${rows ? `<div class="line"></div><div class="bold">已保存的反馈：</div><div class="scroll">${rows}</div>` : ""}`, 540);
+    }
+
+    function modalQr() {
+      openModal("QQ群 1101554578 · 扫码加群", `<img class="qr" src="ddz_qr.png" alt="QQ群二维码">`, 360);
+    }
+
+    function modalDiscordQr() {
+      openModal("Discord · 扫码加入", `<img class="qr" src="ddz_discord_qr.png" alt="Discord二维码">
+        <div class="muted" style="margin-top:8px">https://discord.gg/4DwTVjDCJ</div>`, 360);
+    }
+
+    function addHuman() {
+      const id = state.nextPlayerId++;
+      state.players.push({id, name:`玩家${id}`});
+      currentPlayer = id;
+      saveAndRender();
+    }
+
+    function saveFeedback() {
+      const text = $("feedbackText")?.value.trim();
+      if (!text) return;
+      state.feedback.push({player:pname(currentPlayer), text, time:new Date().toLocaleString()});
+      saveState();
+      modalAbout();
+      toast("反馈已保存");
+    }
+
+    function deleteFeedback(i) {
+      const fb = state.feedback[i];
+      if (!fb || fb.player !== pname(currentPlayer)) return;
+      state.feedback.splice(i, 1);
+      saveState();
+      modalAbout();
+    }
+
+    function exportQqQrSvg() {
+      const a = document.createElement("a");
+      a.href = "ddz_qr.svg";
+      a.download = "ddz_qq_qr.svg";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast("已导出QQ群二维码SVG图片");
+    }
+
+    function exportDiscordQrPng() {
+      const a = document.createElement("a");
+      a.href = "ddz_discord_qr.png";
+      a.download = "ddz_discord_qr.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast("已导出Discord二维码图片");
+    }
+
+    function exportFeedback() {
+      if (!state.feedback.length) {
+        toast("暂无反馈可导出");
+        return;
+      }
+      const lines = [
+        "斗地主反馈导出",
+        "导出玩家：" + pname(currentPlayer),
+        "反馈数量：" + state.feedback.length,
+        ""
+      ];
+      state.feedback.forEach((fb, i) => {
+        lines.push(`[${i + 1}] ${fb.player || "未知玩家"}  ${fb.time || "--"}`);
+        lines.push(fb.text || "");
+        lines.push("");
+      });
+      const blob = new Blob([lines.join("\n")], {type:"text/plain;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "ddz_feedback.txt";
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(a.href);
+      a.remove();
+      toast("反馈已导出");
+    }
+
+    function saveAndRender() {
+      saveState();
+      render();
+    }
+
+    function toast(text) {
+      $("toast").textContent = text;
+      $("toast").classList.add("show");
+      setTimeout(() => $("toast").classList.remove("show"), 1400);
+    }
+
+    function soundButtonHtml() {
+      return `<button class="factorio-button" data-action="soundToggle">${state.soundEnabled ? "声音开" : "声音关"}</button>`;
+    }
+
+    function playPreviewSound(id) {
+      if (!state.soundEnabled) {
+        toast("声音已关闭");
+        return;
+      }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) {
+        toast("当前浏览器不支持试听");
+        return;
+      }
+      const ctx = playPreviewSound.ctx ||= new AC();
+      const now = ctx.currentTime;
+      const gain = ctx.createGain();
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+      const osc = ctx.createOscillator();
+      const specialFreq = {
+        gui_click:520, inventory_click:620, smart_pipette:880, cannot_build:180,
+        new_objective:740, drop_item:420, list_box_click:300, confirm:680,
+        item_spawned:560, research_completed:820, build_large:120, build_huge:90,
+        gui_switch:470, alert_destroyed:220, game_won:900, game_lost:160,
+        entity_settings_pasted:640
+      };
+      let hash = 0;
+      for (const ch of id) hash = (hash + ch.charCodeAt(0) * 17) % 900;
+      const freq = specialFreq[id] || (180 + hash);
+      osc.type = id.includes("build") || id.includes("deconstruct") || id === "alert_destroyed" ? "sawtooth" : "triangle";
+      osc.frequency.setValueAtTime(freq, now);
+      if (id === "build_huge") osc.frequency.exponentialRampToValueAtTime(45, now + 0.2);
+      if (id === "game_won") osc.frequency.exponentialRampToValueAtTime(1200, now + 0.18);
+      if (id === "game_lost") osc.frequency.exponentialRampToValueAtTime(90, now + 0.18);
+      osc.connect(gain);
+      osc.start(now);
+      osc.stop(now + 0.24);
+    }
+
+    document.body.addEventListener("click", e => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const action = btn.dataset.action;
+      if (action === "closeMain") { $("app").innerHTML = ""; return; }
+      if (action === "modalClose") return closeModal();
+      if (action === "newTable") return newTable();
+      if (action.startsWith("join:")) return joinTable(Number(action.split(":")[1]));
+      if (action.startsWith("watch:")) return watchTable(Number(action.split(":")[1]));
+      if (action === "watchClose") return closeWatch();
+      if (action === "ready") return ready();
+      if (action === "addAi") return addAi();
+      if (action === "addAiFull") return toast("座位已满，不能继续加入AI");
+      if (action.startsWith("kickAi:")) return kickAi(Number(action.split(":")[1]));
+      if (action === "leaveTable") return leaveTable();
+      if (action === "leaveTableAndClose") return leaveTable(true);
+      if (action === "quit") return quitGame();
+      if (action === "quitConfirm") return confirmQuitGame();
+      if (action === "restart") return restart();
+      if (action === "replayOpen") return openReplay();
+      if (action === "replayPrev") return refreshReplayPreview(-1);
+      if (action === "replayNext") return refreshReplayPreview(1);
+      if (action === "replayLast") {
+        const id = state.replayView?.[currentPlayer];
+        const archive = id && state.replayArchive?.[id];
+        return refreshReplayPreview(0, archive?.replay?.steps?.length || 0);
+      }
+      if (action === "replayJump") return refreshReplayPreview(0, Number($("replayJumpInput")?.value || 0));
+      if (action === "exportReplay") return exportReplay();
+      if (action.startsWith("bid:")) return bid(Number(action.split(":")[1]));
+      if (action.startsWith("card:")) return toggleCard(Number(action.split(":")[1]));
+      if (action === "hint") return hintCards();
+      if (action === "play") return playCards();
+      if (action === "pass") return passCards();
+      if (action === "tracker") return openTracker();
+      if (action === "trust") return toggleTrust();
+      if (action === "testTool") return openTestTool();
+      if (action === "allSoundTest") return openAllSoundTest();
+      if (action === "testClear") return testClear();
+      if (action === "testOverlapApply") return testOverlapApply();
+      if (action.startsWith("testOverlap:")) return testOverlap(Number(action.split(":")[1]));
+      if (action.startsWith("testRed:")) return testRed(action.split(":")[1]);
+      if (action.startsWith("testPick:")) return testPick(Number(action.split(":")[1]));
+      if (action.startsWith("testSound:")) return playPreviewSound(action.split(":")[1]);
+      if (action === "soundToggle") {
+        state.soundEnabled = !state.soundEnabled;
+        saveState();
+        if (state.soundEnabled) playPreviewSound("gui_switch");
+        return render();
+      }
+      if (action.startsWith("testCard:")) {
+      state.uiTest ||= {sel:{}, played:[], overlap:100, redColor:"deep"};
+        state.uiTest.overlap ??= 100;
+        state.uiTest.redColor ??= "deep";
+        const idx = Number(action.split(":")[1]);
+        state.uiTest.sel[idx] = !state.uiTest.sel[idx];
+        saveState();
+        return openTestTool();
+      }
+      if (action === "rules") return modalRules();
+      if (action === "notice") return modalNotice();
+      if (action === "stats") return modalStats();
+      if (action === "about") return modalAbout();
+      if (action === "qr") return modalQr();
+      if (action === "discordQr") return modalDiscordQr();
+      if (action === "fbSave") return saveFeedback();
+      if (action.startsWith("fbDelete:")) return deleteFeedback(Number(action.split(":")[1]));
+      if (action === "exportQqQrSvg") return exportQqQrSvg();
+      if (action === "exportDiscordQrPng") return exportDiscordQrPng();
+      if (action === "exportFeedback") return exportFeedback();
+    });
+
+    document.body.addEventListener("input", e => {
+      if (e.target?.id !== "replaySlider") return;
+      refreshReplayPreview(0, Number(e.target.value || 0), true);
+    });
+
+    document.body.addEventListener("keydown", e => {
+      if (e.target?.id !== "replayJumpInput" || e.key !== "Enter") return;
+      refreshReplayPreview(0, Number(e.target.value || 0));
+    });
+
+    let dragState = null;
+    document.body.addEventListener("pointerdown", e => {
+      if (e.button !== 0) return;
+      if (e.target.closest("button,input,textarea,select")) return;
+      const bar = e.target.closest(".titlebar");
+      if (!bar) return;
+      const win = bar.closest(".window,.modal-window");
+      if (!win) return;
+      const rect = win.getBoundingClientRect();
+      win.style.position = "fixed";
+      win.style.left = rect.left + "px";
+      win.style.top = rect.top + "px";
+      win.style.margin = "0";
+      win.style.zIndex = String(Date.now()).slice(-6);
+      dragState = {
+        win,
+        dx: e.clientX - rect.left,
+        dy: e.clientY - rect.top
+      };
+      bar.setPointerCapture(e.pointerId);
+    });
+
+    document.body.addEventListener("pointermove", e => {
+      if (!dragState) return;
+      const maxX = Math.max(0, window.innerWidth - dragState.win.offsetWidth);
+      const maxY = Math.max(42, window.innerHeight - dragState.win.offsetHeight);
+      const x = Math.min(maxX, Math.max(0, e.clientX - dragState.dx));
+      const y = Math.min(maxY, Math.max(42, e.clientY - dragState.dy));
+      dragState.win.style.left = x + "px";
+      dragState.win.style.top = y + "px";
+    });
+
+    document.body.addEventListener("pointerup", () => { dragState = null; });
+    document.body.addEventListener("pointercancel", () => { dragState = null; });
+
+    $("topBtn").addEventListener("click", () => render());
+    $("playerSelect").addEventListener("change", e => {
+      currentPlayer = Number(e.target.value);
+      render();
+    });
+    $("addHumanBtn").addEventListener("click", addHuman);
+    $("resetBtn").addEventListener("click", () => {
+      if (!confirm("确定重置浏览器牌局、战绩和反馈吗？")) return;
+      localStorage.removeItem(SAVE_KEY);
+      state = freshState();
+      currentPlayer = 1;
+      closeModal();
+      saveAndRender();
+    });
+
+    render();
+  </script>
+</body>
+</html>

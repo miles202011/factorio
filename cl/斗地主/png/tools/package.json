@@ -1,0 +1,13 @@
+{
+  "name": "ddz-card-svg-to-png",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "convert": "node svg_to_png.mjs",
+    "convert:played": "node convert_played_cards.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.34.5"
+  }
+}

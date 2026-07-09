@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem \"D:\\\\桌面\\\\factorio\\\\cl\" -Directory)",
+      "Bash(Select-Object Name)",
+      "WebFetch(domain:lua-api.factorio.com)"
+    ]
+  }
+}

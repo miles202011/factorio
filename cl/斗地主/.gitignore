@@ -1,0 +1,16 @@
+DouZero-1.1.0/
+rlcard-1.0.7/
+*.zip
+
+斗地主（扑克牌游戏）_百度百科.html
+斗地主（扑克牌游戏）_百度百科_files/
+
+png/node_modules/
+png/tools/node_modules/
+png/*.pdf
+png/*.jpg
+png/*upload*
+png/tmp_*.png
+png/card_back_*
+png/deck_with_custom_back_from_site.zip
+png/poker-qr-BackGoodall.zip

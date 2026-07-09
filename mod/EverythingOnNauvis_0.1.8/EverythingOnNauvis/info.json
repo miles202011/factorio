@@ -1,0 +1,16 @@
+{
+    "name": "EverythingOnNauvis",
+    "version": "0.1.8",
+    "title": "Everything on Nauvis",
+    "description": "Moves all resources to Nauvis",
+    "author": "Spaghetti",
+    "contact": "https://github.com/Spaghenutti/EverythingOnNauvis/issues",
+    "factorio_version": "2.0",
+    "space_travel_required": true,
+    "dependencies": [
+        "base >= 2.0.47",
+        "space-age >= 2.0.47",
+        "! naufulglebunusilo",
+        "! rso-mod"
+    ]
+}

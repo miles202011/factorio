@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>&#20117;&#23383;&#26827;</title>
+  <style>
+    :root {
+      --frame: #2d2c2b;
+      --border: #0e0d0c;
+      --line: #6f6b65;
+      --text: #ece2d0;
+      --muted: #beb4a3;
+      --yellow: #ffe4a5;
+      --blue: #8acbff;
+      --green: #9be579;
+      --button-a: #c6c4bf;
+      --button-b: #8c8a85;
+      --button-hover-a: #dad8d2;
+      --button-hover-b: #a5a29b;
+      --disabled: #77736c;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: var(--text);
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      background:
+        radial-gradient(circle at 13% 18%, rgba(40, 34, 25, .42) 0 2px, transparent 3px) 0 0 / 33px 29px,
+        radial-gradient(circle at 61% 72%, rgba(143, 101, 58, .33) 0 5px, transparent 7px) 0 0 / 86px 61px,
+        radial-gradient(circle at 38% 41%, rgba(83, 61, 39, .42) 0 4px, transparent 6px) 0 0 / 57px 49px,
+        linear-gradient(9deg, rgba(31, 28, 23, .18), transparent 36%, rgba(255,255,255,.025) 37%, transparent 68%),
+        #6d5133;
+    }
+
+    button {
+      min-width: 108px;
+      min-height: 28px;
+      padding: 3px 12px;
+      border: 2px solid #24221f;
+      border-radius: 0;
+      color: #151515;
+      background: linear-gradient(var(--button-a), var(--button-b));
+      box-shadow: inset 1px 1px rgba(255,255,255,.55), inset -1px -1px rgba(0,0,0,.42);
+      font: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:hover { background: linear-gradient(var(--button-hover-a), var(--button-hover-b)); }
+
+    button:active, button.selected {
+      color: #21190e;
+      background: linear-gradient(#f0c566, #b97920);
+    }
+
+    button:disabled {
+      color: var(--disabled);
+      background: #34322d;
+      cursor: default;
+      box-shadow: inset 0 1px rgba(255,255,255,.06);
+    }
+
+    .top {
+      position: fixed;
+      left: 8px;
+      top: 8px;
+      z-index: 5;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    #topButton {
+      min-width: 76px;
+      height: 30px;
+      padding: 3px 12px;
+    }
+
+    #topButton.hidden-top { display: none; }
+
+    .player-box {
+      position: fixed;
+      right: 8px;
+      top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px;
+      opacity: 0;
+      background: rgba(31,29,24,.74);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px rgba(255,255,255,.08);
+    }
+
+    .player-box:hover { opacity: 1; }
+
+    .player-box span {
+      padding: 0 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .player-box button {
+      min-width: 56px;
+      min-height: 24px;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: block;
+      padding: 48px 0 0 68px;
+      pointer-events: none;
+    }
+
+    .frame {
+      pointer-events: auto;
+      background: var(--frame);
+      border: 2px solid var(--border);
+      box-shadow: inset 1px 1px rgba(255,255,255,.08), inset -1px -1px rgba(0,0,0,.45), 0 2px 5px rgba(0,0,0,.4);
+    }
+
+    .frame.hidden { display: none; }
+    .frame.lobby { width: 520px; min-height: 140px; }
+    .frame.table { width: 480px; }
+
+    .caption {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding: 6px 10px 2px;
+      background: var(--frame);
+      font-weight: 700;
+    }
+
+    .caption-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--yellow);
+      font-size: 19px;
+      line-height: 24px;
+    }
+
+    .drag-fill {
+      flex: 1 1 auto;
+      height: 24px;
+      margin-left: 12px;
+      border: 1px solid #403e3b;
+      background:
+        repeating-linear-gradient(90deg, #242321 0 2px, #373532 2px 4px);
+      opacity: .82;
+    }
+
+    .title-close {
+      width: 26px;
+      min-width: 26px;
+      height: 26px;
+      min-height: 26px;
+      padding: 0;
+      margin-left: 6px;
+      line-height: 1;
+      font-weight: 700;
+      color: #151515;
+    }
+
+    .content { padding: 2px 10px 10px; }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .flow.nowrap { flex-wrap: nowrap; }
+
+    .line {
+      height: 1px;
+      margin: 5px 0;
+      background: #1c1b19;
+      border-top: 1px solid var(--line);
+    }
+
+    .label { line-height: 1.6; color: var(--text); }
+    .muted { color: var(--muted); }
+    .green { color: var(--green); }
+    .yellow { color: var(--yellow); }
+    .orange { color: #ffb066; }
+    .blue { color: var(--blue); }
+    .bold { font-weight: 700; }
+
+    .scroll {
+      max-height: 280px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .table-row,
+    .seat-card {
+      background: #242321;
+      border: 1px solid #57524b;
+      box-shadow: inset 1px 1px rgba(255,255,255,.06);
+    }
+
+    .table-row {
+      min-width: 500px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px;
+      margin-bottom: 6px;
+    }
+
+    .table-title { min-width: 120px; }
+
+    .seat-list {
+      min-width: 280px;
+      flex: 1;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .seat-card {
+      min-width: 220px;
+      padding: 6px;
+    }
+
+    .seat-card.playing {
+      background: #35472e;
+      border-color: #82b76b;
+    }
+
+    .table-list {
+      display: grid;
+      grid-template-columns: 42px 42px 26px 26px 1fr;
+      align-items: center;
+      width: 238px;
+    }
+
+    .table-list > div {
+      min-height: 22px;
+      display: flex;
+      align-items: center;
+      padding: 0 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .table-list .head {
+      color: var(--text);
+      background: transparent;
+      font-weight: 400;
+    }
+
+    .empty-row {
+      min-height: 21px;
+      display: flex;
+      align-items: center;
+      color: var(--text);
+    }
+
+    .seat {
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      background: #242321;
+      border: 1px solid var(--border);
+    }
+
+    .seat + .seat { border-top: 0; }
+
+    .mark {
+      width: 26px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      background: #383530;
+      border: 1px solid var(--border);
+      color: var(--yellow);
+      font-weight: 700;
+    }
+
+    .pill {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .pill.ready { color: var(--green); }
+    .pill.turn { color: var(--blue); }
+
+    .message {
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      padding: 5px 7px;
+      color: var(--yellow);
+      background: #242321;
+      border: 1px solid var(--border);
+    }
+
+    .board {
+      width: 216px;
+      display: grid;
+      grid-template-columns: repeat(3, 64px);
+      gap: 4px;
+      margin: 10px auto;
+      padding: 6px;
+      background: #1a1916;
+      border: 1px solid var(--border);
+    }
+
+    .cell {
+      width: 64px;
+      height: 64px;
+      min-width: 64px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0;
+      line-height: 1;
+    }
+
+    .cell:disabled { opacity: 1; }
+    .cell .piece {
+      display: block;
+      font-size: 58px;
+      font-weight: 900;
+      line-height: 0.9;
+      transform: translateY(-1px);
+    }
+    .cell.x { color: var(--yellow); }
+    .cell.o { color: var(--blue); }
+    .cell.win { outline: 2px solid var(--green); outline-offset: -4px; }
+
+    .stats {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .modal-layer {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 72px 16px 16px;
+      background: rgba(0,0,0,.24);
+      z-index: 20;
+      pointer-events: auto;
+    }
+
+    .modal-layer.show { display: flex; }
+
+    .modal-window {
+      width: min(520px, calc(100vw - 32px));
+      background: var(--frame);
+      border: 2px solid var(--border);
+      box-shadow: inset 1px 1px rgba(255,255,255,.08), 0 18px 40px rgba(0,0,0,.45);
+    }
+
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 96px minmax(180px, 1fr);
+      gap: 8px 10px;
+      max-height: 440px;
+      overflow: auto;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1.5fr repeat(3, .6fr);
+      min-height: 28px;
+      align-items: center;
+    }
+
+    .stats-row > div { padding: 2px 4px; }
+
+    @media (max-width: 560px) {
+      .top { right: 8px; flex-wrap: wrap; }
+      .player-box { top: 46px; left: 8px; right: auto; }
+      .screen { padding: 86px 8px 0; }
+      .frame.lobby, .frame.table { width: min(100%, 520px); }
+      .table-list { grid-template-columns: 54px 76px 1fr 78px; }
+      .table-list .hide-mobile, .table-list > .hide-mobile { display: none; }
+      .table-row { min-width: 0; align-items: flex-start; flex-direction: column; }
+      .seat-card { min-width: 100%; }
+      .board { margin-left: 0; margin-right: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <button id="topButton"></button>
+    <div class="player-box">
+      <span id="simLabel"></span>
+      <button data-player="1"></button>
+      <button data-player="2"></button>
+      <button data-player="3"></button>
+    </div>
+  </div>
+
+  <main class="screen">
+    <section id="lobbyFrame" class="frame lobby">
+      <div class="caption">
+        <span id="lobbyCaption" class="caption-title"></span>
+        <span class="drag-fill" aria-hidden="true"></span>
+        <button class="title-close" data-action="close">×</button>
+      </div>
+      <div id="lobbyContent" class="content"></div>
+    </section>
+
+    <section id="tableFrame" class="frame table hidden">
+      <div class="caption">
+        <span id="tableTitle" class="caption-title"></span>
+        <span class="drag-fill" aria-hidden="true"></span>
+        <button class="title-close" data-action="close">×</button>
+      </div>
+      <div id="tableContent" class="content"></div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal-layer"></div>
+
+  <script>
+    const T = {
+      game: "\u4e95\u5b57\u68cb",
+      lobby: "\u4e95\u5b57\u68cb \u00b7 \u5927\u5385",
+      sim: "\u6a21\u62df\u73a9\u5bb6",
+      p1: "\u5de5\u7a0b\u5e08\u4e00",
+      p2: "\u5de5\u7a0b\u5e08\u4e8c",
+      p3: "\u65c1\u89c2\u8005",
+      empty: "\u7a7a\u4f4d",
+      ai: "AI \u5de5\u7a0b\u5e08",
+      offline: "\u79bb\u7ebf\u73a9\u5bb6",
+      waiting: "\u7b49\u5f85\u4e2d",
+      playing: "\u5bf9\u5c40\u4e2d",
+      over: "\u5df2\u7ed3\u675f",
+      onTable: "\u4f60\u5df2\u7ecf\u5728\u4e00\u5f20\u684c\u4e0a\u3002",
+      backTable: "\u56de\u5230\u68cb\u684c",
+      tid: "\u684c\u53f7",
+      status: "\u72b6\u6001",
+      action: "\u64cd\u4f5c",
+      join: "\u52a0\u5165",
+      view: "\u67e5\u770b",
+      noTable: "\u8fd8\u6ca1\u6709\u68cb\u684c\u3002",
+      noTableDdz: "\u6682\u65e0\u68cb\u684c\uff0c\u70b9\u51fb\u4e0b\u65b9\u201c\u5f00\u65b0\u684c\u201d\u5f00\u59cb\u6e38\u620f\u3002",
+      newTable: "\u5f00\u65b0\u684c",
+      close: "\u5173\u95ed",
+      statsOpen: "\u67e5\u770b\u6218\u7ee9",
+      rules: "\u6e38\u620f\u89c4\u5219",
+      notice: "\u6ce8\u610f\u4e8b\u9879",
+      stats: "\u6218\u7ee9\uff1a\u80dc",
+      lose: "\u8d1f",
+      draw: "\u5e73",
+      ready: "\u5df2\u51c6\u5907",
+      notReady: "\u672a\u51c6\u5907",
+      turn: "\u5f53\u524d\u56de\u5408",
+      waitJoin: "\u7b49\u5f85\u7b2c\u4e8c\u540d\u73a9\u5bb6\u52a0\u5165\uff0c\u6216\u70b9\u51fb\u8865 AI\u3002",
+      seated: "\u4e24\u540d\u73a9\u5bb6\u5165\u5ea7\u540e\uff0c\u53cc\u65b9\u51c6\u5907\u5373\u53ef\u5f00\u59cb\u3002",
+      aiSeated: "AI \u5df2\u5165\u5ea7\uff0c\u771f\u4eba\u73a9\u5bb6\u51c6\u5907\u540e\u5f00\u59cb\u3002",
+      aiLeft: "AI \u5df2\u79bb\u684c\u3002",
+      cancelReady: "\u53d6\u6d88\u51c6\u5907",
+      addAi: "\u8865 AI",
+      joinAi: "\u52a0\u5165AI",
+      kickAi: "\u8e22 AI",
+      kickOut: "\u8e22\u51fa",
+      again: "\u518d\u6765\u4e00\u5c40",
+      hall: "\u5927\u5385",
+      leave: "\u79bb\u684c",
+      quitGame: "\u9000\u51fa\uff08\u7ed3\u675f\u672c\u5c40\uff09",
+      fullDraw: "\u5e73\u5c40\uff0c\u68cb\u76d8\u88ab\u586b\u6ee1\u4e86\u3002",
+      win: "\u83b7\u80dc\u3002",
+      first: "\u5148\u624b\u3002",
+      to: "\u8f6e\u5230",
+      waitReady: "\u7b49\u5f85\u4e24\u540d\u73a9\u5bb6\u51c6\u5907\u3002",
+      left: "\u79bb\u684c",
+      leftWin: "\u79bb\u684c\uff0c"
+    };
+
+    const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    const AI_DELAY_MS = 1000;
+    const PLAYER_TURN_MS = 20000;
+    const players = {1: {name: T.p1}, 2: {name: T.p2}, 3: {name: T.p3}};
+    const state = {panel: "lobby", currentPlayer: 1, viewTid: null, tables: {}, seat: {}, stats: {}};
+    const aiTimers = {};
+    const turnTimers = {};
+
+    const topButton = document.querySelector("#topButton");
+    const simLabel = document.querySelector("#simLabel");
+    const lobbyFrame = document.querySelector("#lobbyFrame");
+    const tableFrame = document.querySelector("#tableFrame");
+    const lobbyContent = document.querySelector("#lobbyContent");
+    const tableContent = document.querySelector("#tableContent");
+    const lobbyCaption = document.querySelector("#lobbyCaption");
+    const tableTitle = document.querySelector("#tableTitle");
+    const modal = document.querySelector("#modal");
+
+    document.title = T.game;
+    topButton.textContent = T.game;
+    simLabel.textContent = T.sim;
+    lobbyCaption.textContent = T.lobby;
+    document.querySelector('[data-player="1"]').textContent = T.p1;
+    document.querySelector('[data-player="2"]').textContent = T.p2;
+    document.querySelector('[data-player="3"]').textContent = T.p3;
+
+    function playerName(pid) {
+      if (!pid) return T.empty;
+      if (pid < 0) return T.ai;
+      return players[pid]?.name || T.offline;
+    }
+
+    function phaseText(phase) {
+      if (phase === "waiting") return T.waiting;
+      if (phase === "playing") return T.playing;
+      return T.over;
+    }
+
+    function markOfSeat(seat) { return seat === 1 ? "X" : "O"; }
+    function seatOfPid(g, pid) { return g.players[1] === pid ? 1 : (g.players[2] === pid ? 2 : null); }
+    function firstEmptySeat(g) { return !g.players[1] ? 1 : (!g.players[2] ? 2 : null); }
+    function aiSeat(g) { return g.players[1] < 0 ? 1 : (g.players[2] < 0 ? 2 : null); }
+    function currentGame() { const tid = state.seat[state.currentPlayer]; return tid ? state.tables[tid] : null; }
+
+    function allocTid() {
+      let tid = 1;
+      while (state.tables[tid]) tid++;
+      return tid;
+    }
+
+    function winnerMark(board) {
+      for (const line of WIN_LINES) {
+        const [a,b,c] = line;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) return {mark: board[a], line};
+      }
+      if (board.every(Boolean)) return {mark: "draw", line: []};
+      return null;
+    }
+
+    function pidForMark(g, mark) { return g.players[mark === "X" ? 1 : 2]; }
+
+    function ensureStat(pid) {
+      if (!pid || pid < 0) return null;
+      const name = playerName(pid);
+      state.stats[name] ||= {w: 0, l: 0, d: 0};
+      return state.stats[name];
+    }
+
+    function updateStats(winner, loser, draw) {
+      if (draw) {
+        const a = ensureStat(winner), b = ensureStat(loser);
+        if (a) a.d++;
+        if (b) b.d++;
+      } else {
+        const w = ensureStat(winner), l = ensureStat(loser);
+        if (w) w.w++;
+        if (l) l.l++;
+      }
+    }
+
+    function finishGame(g, result) {
+      clearAiTimer(g);
+      clearTurnTimer(g);
+      g.phase = "over";
+      g.winLine = result.line;
+      if (result.mark === "draw") {
+        g.msg = T.fullDraw;
+        updateStats(g.players[1], g.players[2], true);
+        return;
+      }
+      const winner = pidForMark(g, result.mark);
+      const loser = pidForMark(g, result.mark === "X" ? "O" : "X");
+      g.winner = winner;
+      g.msg = `${playerName(winner)} ${T.win}`;
+      updateStats(winner, loser, false);
+    }
+
+    function finishTimeout(g) {
+      if (!g || g.phase !== "playing" || !g.turn || g.turn < 0) return false;
+      const seat = seatOfPid(g, g.turn);
+      const timedOut = g.turn;
+      const winner = g.players[seat === 1 ? 2 : 1];
+      if (!winner) return false;
+      clearAiTimer(g);
+      clearTurnTimer(g);
+      g.phase = "over";
+      g.winLine = [];
+      g.winner = winner;
+      g.msg = `${playerName(timedOut)} 超时未落子，${playerName(winner)} 获胜。`;
+      updateStats(winner, timedOut, false);
+      return true;
+    }
+
+    function checkFinish(g) {
+      const result = winnerMark(g.board);
+      if (!result) return false;
+      finishGame(g, result);
+      return true;
+    }
+
+    function wouldWin(board, mark, pos) {
+      if (board[pos]) return false;
+      board[pos] = mark;
+      const ok = winnerMark(board)?.mark === mark;
+      board[pos] = "";
+      return ok;
+    }
+
+    function aiPick(board, aiMark, humanMark) {
+      for (let i = 0; i < 9; i++) if (wouldWin(board, aiMark, i)) return i;
+      for (let i = 0; i < 9; i++) if (wouldWin(board, humanMark, i)) return i;
+      if (!board[4]) return 4;
+      for (const i of [0,2,6,8]) if (!board[i]) return i;
+      return board.findIndex(v => !v);
+    }
+
+    function doAiTurn(g) {
+      if (g.phase !== "playing" || !g.turn || g.turn > 0) return;
+      const aiSeat = seatOfPid(g, g.turn);
+      const aiMark = markOfSeat(aiSeat);
+      const pos = aiPick(g.board, aiMark, aiMark === "X" ? "O" : "X");
+      if (pos < 0) return;
+      g.board[pos] = aiMark;
+      if (checkFinish(g)) return;
+      g.turn = g.players[aiSeat === 1 ? 2 : 1];
+      g.msg = `${T.to} ${playerName(g.turn)}\u3002`;
+    }
+
+    function clearAiTimer(g) {
+      if (!g || !aiTimers[g.tid]) return;
+      clearTimeout(aiTimers[g.tid]);
+      delete aiTimers[g.tid];
+    }
+
+    function clearTurnTimer(g) {
+      if (!g) return;
+      if (turnTimers[g.tid]) {
+        clearTimeout(turnTimers[g.tid]);
+        delete turnTimers[g.tid];
+      }
+      g.turnDue = null;
+    }
+
+    function turnSecondsLeft(g) {
+      if (!g || !g.turnDue) return null;
+      return Math.max(0, Math.ceil((g.turnDue - Date.now()) / 1000));
+    }
+
+    function scheduleAiTurn(g) {
+      clearAiTimer(g);
+      if (!g || g.phase !== "playing" || !g.turn || g.turn > 0) return;
+      const tid = g.tid;
+      const turn = g.turn;
+      aiTimers[tid] = setTimeout(() => {
+        delete aiTimers[tid];
+        const live = state.tables[tid];
+        if (!live || live.phase !== "playing" || live.turn !== turn) return;
+        doAiTurn(live);
+        scheduleTurnTimer(live);
+        scheduleAiTurn(live);
+        render();
+      }, AI_DELAY_MS);
+    }
+
+    function scheduleTurnTimer(g) {
+      clearTurnTimer(g);
+      if (!g || g.phase !== "playing" || !g.turn || g.turn < 0) return;
+      const tid = g.tid;
+      const turn = g.turn;
+      g.turnDue = Date.now() + PLAYER_TURN_MS;
+      turnTimers[tid] = setTimeout(() => {
+        delete turnTimers[tid];
+        const live = state.tables[tid];
+        if (!live || live.phase !== "playing" || live.turn !== turn) return;
+        finishTimeout(live);
+        render();
+      }, PLAYER_TURN_MS);
+    }
+
+    function tryStart(g) {
+      if (g.phase === "waiting" && g.players[1] && g.players[2] && g.ready[g.players[1]] && g.ready[g.players[2]]) {
+        g.phase = "playing";
+        g.board = Array(9).fill("");
+        g.turn = g.players[1];
+        g.winner = null;
+        g.winLine = [];
+        g.msg = `${playerName(g.turn)} ${T.first}`;
+      }
+    }
+
+    function createTable() {
+      const tid = allocTid();
+      state.tables[tid] = {tid, phase: "waiting", players: {1: state.currentPlayer}, ready: {}, board: Array(9).fill(""), turn: null, winner: null, winLine: [], msg: T.waitJoin};
+      state.seat[state.currentPlayer] = tid;
+      state.viewTid = tid;
+      state.panel = "table";
+      render();
+    }
+
+    function joinTable(tid) {
+      if (state.seat[state.currentPlayer]) return;
+      const g = state.tables[tid];
+      if (!g || g.phase !== "waiting") return;
+      const seat = firstEmptySeat(g);
+      if (!seat) return;
+      g.players[seat] = state.currentPlayer;
+      state.seat[state.currentPlayer] = tid;
+      state.viewTid = tid;
+      g.msg = T.seated;
+      state.panel = "table";
+      render();
+    }
+
+    function addAi(g) {
+      const seat = firstEmptySeat(g);
+      if (!seat) return;
+      const aiPid = -g.tid;
+      g.players[seat] = aiPid;
+      g.ready[aiPid] = true;
+      g.msg = T.aiSeated;
+      tryStart(g);
+      scheduleTurnTimer(g);
+      scheduleAiTurn(g);
+      render();
+    }
+
+    function kickAi(g) {
+      if (g.phase !== "waiting") return;
+      const seat = aiSeat(g);
+      if (!seat) return;
+      const aiPid = g.players[seat];
+      clearAiTimer(g);
+      clearTurnTimer(g);
+      delete g.players[seat];
+      delete g.ready[aiPid];
+      g.msg = T.aiLeft;
+      render();
+    }
+
+    function setReady(g, value) {
+      if (value) {
+        g.ready[state.currentPlayer] = true;
+        g.msg = `${playerName(state.currentPlayer)} ${T.ready}\u3002`;
+        tryStart(g);
+        scheduleTurnTimer(g);
+        scheduleAiTurn(g);
+      } else {
+        delete g.ready[state.currentPlayer];
+        g.msg = `${playerName(state.currentPlayer)} ${T.cancelReady}\u3002`;
+      }
+      render();
+    }
+
+    function move(g, pos) {
+      if (g.phase !== "playing" || g.turn !== state.currentPlayer || g.board[pos]) return;
+      const seat = seatOfPid(g, state.currentPlayer);
+      g.board[pos] = markOfSeat(seat);
+      if (!checkFinish(g)) {
+        g.turn = g.players[seat === 1 ? 2 : 1];
+        g.msg = `${T.to} ${playerName(g.turn)}\u3002`;
+        scheduleTurnTimer(g);
+        scheduleAiTurn(g);
+      }
+      render();
+    }
+
+    function resetGame(g) {
+      clearAiTimer(g);
+      clearTurnTimer(g);
+      g.phase = "waiting";
+      g.ready = {};
+      g.board = Array(9).fill("");
+      g.turn = null;
+      g.winner = null;
+      g.winLine = [];
+      g.msg = T.waitReady;
+      for (const seat of [1,2]) {
+        const pid = g.players[seat];
+        if (pid && pid < 0) g.ready[pid] = true;
+      }
+      render();
+    }
+
+    function leaveTable() {
+      const g = currentGame();
+      if (!g) return;
+      const pid = state.currentPlayer;
+      const seat = seatOfPid(g, pid);
+      const otherSeat = seat === 1 ? 2 : 1;
+      const other = g.players[otherSeat];
+      if (g.phase === "playing" && other) {
+        clearAiTimer(g);
+        clearTurnTimer(g);
+        updateStats(other, pid, false);
+        g.msg = `${playerName(pid)} ${T.leftWin}${playerName(other)} ${T.win}`;
+      }
+      delete g.players[seat];
+      delete g.ready[pid];
+      delete state.seat[pid];
+      if (other && other < 0) delete g.players[otherSeat];
+      if (!g.players[1] && !g.players[2]) {
+        clearAiTimer(g);
+        clearTurnTimer(g);
+        delete state.tables[g.tid];
+      } else {
+        clearAiTimer(g);
+        clearTurnTimer(g);
+        g.phase = "waiting";
+        g.ready = {};
+        g.board = Array(9).fill("");
+        g.turn = null;
+        g.winner = null;
+        g.winLine = [];
+      }
+      state.panel = "lobby";
+      render();
+    }
+
+    function phaseBadge(phase) {
+      if (phase === "waiting") return `<span class="green">${T.waiting}</span>`;
+      if (phase === "playing") return `<span class="yellow">${T.playing}</span>`;
+      return `<span class="muted">${T.over}</span>`;
+    }
+
+    function seatCount(g) {
+      return (g.players[1] ? 1 : 0) + (g.players[2] ? 1 : 0);
+    }
+
+    function renderLobby() {
+      const current = currentGame();
+      const tables = Object.values(state.tables).sort((a,b) => a.tid - b.tid);
+      let body = current ? `<div class="flow label"><span>${T.onTable}</span><button data-action="view" data-tid="${current.tid}">${T.backTable}</button></div><div class="line"></div>` : "";
+      if (!tables.length) {
+        body += `<div class="muted">${T.noTableDdz}</div>`;
+      } else {
+        body += `<div class="scroll">`;
+        for (const g of tables) {
+          const canJoin = !current && g.phase === "waiting" && firstEmptySeat(g);
+          body += `<div class="table-row">
+            <div class="table-title">桌 ${g.tid} ${phaseBadge(g.phase)}</div>
+            <div class="seat-list">
+              <span>X:${playerName(g.players[1])}${g.phase === "waiting" && g.players[1] ? (g.ready[g.players[1]] ? `<span class="green">✓</span>` : `<span class="orange">○</span>`) : ""}</span>
+              <span>O:${playerName(g.players[2])}${g.phase === "waiting" && g.players[2] ? (g.ready[g.players[2]] ? `<span class="green">✓</span>` : `<span class="orange">○</span>`) : ""}</span>
+            </div>
+            <button data-action="${canJoin ? "join" : "view"}" data-tid="${g.tid}">${canJoin ? T.join : T.view}</button>
+          </div>`;
+        }
+        body += `</div>`;
+      }
+      body += `<div class="line"></div>
+        <div class="flow">
+          <button data-action="open">${T.newTable}</button>
+          <button data-action="stats">${T.statsOpen}</button>
+          <button data-action="rules">${T.rules}</button>
+          <button data-action="notice">${T.notice}</button>
+        </div>`;
+      lobbyContent.innerHTML = body;
+    }
+
+    function renderSeat(g, seat) {
+      const pid = g.players[seat];
+      const isReady = pid && g.ready[pid];
+      const isTurn = g.phase === "playing" && pid === g.turn;
+      let pill = "";
+      if (pid && g.phase === "waiting") pill = `<span class="pill ${isReady ? "ready" : ""}">${isReady ? T.ready : T.notReady}</span>`;
+      if (pid && isTurn) pill = `<span class="pill turn">${T.turn}</span>`;
+      return `<div class="seat"><span class="mark">${markOfSeat(seat)}</span><span>${playerName(pid)}</span>${pill}</div>`;
+    }
+
+    function renderTable() {
+      const g = currentGame() || state.tables[state.viewTid] || state.tables[Object.keys(state.tables)[0]];
+      if (!g) { state.panel = "lobby"; renderLobby(); return; }
+      const mySeat = seatOfPid(g, state.currentPlayer);
+      const canMove = g.phase === "playing" && g.turn === state.currentPlayer;
+      if (g.phase === "waiting") {
+        tableTitle.textContent = `${T.game} · 桌 ${g.tid} · 等待就绪`;
+        let body = `<div>玩家就绪 (${seatCount(g)}/2)</div>`;
+        for (const seat of [1,2]) {
+          const pid = g.players[seat];
+          if (pid) {
+            const mark = g.ready[pid] ? `<span class="green">${T.ready}</span>` : `<span class="orange">${T.notReady}</span>`;
+            body += `<div class="flow" style="margin-top:6px"><span>${seat}号：&nbsp;${playerName(pid)} ${mark}</span>${mySeat && pid < 0 ? `<button data-action="kick-ai">${T.kickOut}</button>` : ""}</div>`;
+          } else {
+            body += `<div style="margin-top:6px">${seat}号：&nbsp;（${T.empty}）</div>`;
+          }
+        }
+        if (g.msg) body += `<div class="muted" style="margin-top:8px">${g.msg}</div>`;
+        body += `<div class="line"></div><div class="flow">`;
+        if (mySeat) {
+          body += g.ready[state.currentPlayer] ? `<span class="green">已准备，等待其他玩家...</span>` : `<button data-action="ready">${T.ready.replace("已", "")}</button>`;
+        }
+        if (mySeat && firstEmptySeat(g)) body += `<button data-action="add-ai">${T.joinAi}</button>`;
+        if (mySeat) body += `<button data-action="leave">${T.leave}</button>`;
+        body += `<button data-action="rules">${T.rules}</button><button data-action="notice">${T.notice}</button></div>`;
+        tableContent.innerHTML = body;
+        return;
+      }
+
+      if (g.phase === "over") {
+        tableTitle.textContent = `游戏结束 · 桌 ${g.tid}`;
+        tableContent.innerHTML = `<div class="bold">${g.msg || "游戏结束。"}</div>
+          <div class="flow" style="margin-top:10px">
+            ${mySeat ? `<button data-action="again">${T.again}</button><button data-action="leave">${T.leave}</button>` : ""}
+            <button data-action="back">${T.hall}</button>
+          </div>`;
+        return;
+      }
+
+      tableTitle.textContent = `${T.game} · 桌 ${g.tid}`;
+      tableContent.innerHTML = `
+        <div class="flow nowrap" style="align-items:stretch">
+          ${[1,2].map(seat => {
+            const pid = g.players[seat];
+            const active = pid === g.turn;
+            const left = active && pid > 0 ? turnSecondsLeft(g) : null;
+            return `<div class="seat-card ${active ? "playing" : ""}">
+              <div class="${active ? "bold" : ""}">${active ? `<span class="yellow">▶</span> ` : "&nbsp;&nbsp;"}${playerName(pid)} [${markOfSeat(seat)}]</div>
+              <div>${active ? `<span class="green">${T.turn}</span>${left !== null ? ` <span class="yellow">剩余 ${left} 秒</span>` : ""}` : `<span class="muted">等待...</span>`}</div>
+            </div>`;
+          }).join("")}
+        </div>
+        ${g.msg ? `<div style="margin-top:8px">${g.msg}</div>` : ""}
+        <div class="line"></div>
+        <div class="board">${g.board.map((mark, i) => `<button class="cell ${mark.toLowerCase()} ${g.winLine.includes(i) ? "win" : ""}" data-action="cell" data-pos="${i}" ${canMove || mark ? "" : "disabled"}>${mark ? `<span class="piece">${mark}</span>` : ""}</button>`).join("")}</div>
+        <div class="line"></div>
+        <div class="flow"><button data-action="rules">${T.rules}</button>${mySeat ? `<button data-action="leave">${T.quitGame}</button>` : ""}</div>
+      `;
+    }
+
+    function openModal(title, body, width = 520) {
+      modal.innerHTML = `<section class="modal-window" style="width:min(${width}px, calc(100vw - 32px))">
+        <div class="caption">
+          <span class="caption-title">${title}</span>
+          <span class="drag-fill" aria-hidden="true"></span>
+          <button class="title-close" data-action="modal-close">×</button>
+        </div>
+        <div class="content">${body}</div>
+      </section>`;
+      modal.classList.add("show");
+    }
+
+    function closeModal() {
+      modal.classList.remove("show");
+      modal.innerHTML = "";
+    }
+
+    function showRules() {
+      const rows = [
+        ["【目标】", "在 3x3 棋盘上率先连成横、竖或斜向三子。"],
+        ["【座位】", "1号位执 X 先手，2号位执 O 后手。"],
+        ["【流程】", "双方入座并准备后开始；轮到自己时点击空格落子。"],
+        ["【限时】", "真人玩家每回合 20 秒内落子，超时判对方获胜。"],
+        ["【平局】", "棋盘填满且无人三连，则本局平局。"]
+      ];
+      openModal(`${T.game} · ${T.rules}`, `<div class="rules-grid">${rows.map(([a,b]) => `<div class="bold">${a}</div><div>${b}</div>`).join("")}</div>`, 460);
+    }
+
+    function showNotice() {
+      const rows = [
+        ["【离桌】", "对局中离桌会让另一方直接获胜。"],
+        ["【战绩】", "只记录真人玩家的胜、负、平；AI 不记战绩。"],
+        ["【AI补位】", "等待阶段可加入 AI，也可在开局前踢出 AI。"],
+        ["【再来】", "结束后点击“再来一局”会回到等待阶段，需要真人重新准备。"]
+      ];
+      openModal(`${T.game} · ${T.notice}`, `<div class="rules-grid">${rows.map(([a,b]) => `<div class="bold">${a}</div><div>${b}</div>`).join("")}</div>`, 460);
+    }
+
+    function showStats() {
+      const rows = Object.entries(state.stats).sort((a,b) => (b[1].w + b[1].l + b[1].d) - (a[1].w + a[1].l + a[1].d));
+      if (!rows.length) return openModal(`${T.game} · ${T.statsOpen}`, `<div class="muted">暂无战绩。</div>`, 420);
+      const body = `<div class="stats-row bold"><div>玩家</div><div>胜</div><div>负</div><div>平</div></div><div class="line"></div>
+        <div class="scroll">${rows.map(([name,s]) => `<div class="stats-row"><div>${name}</div><div>${s.w || 0}</div><div>${s.l || 0}</div><div>${s.d || 0}</div></div>`).join("")}</div>`;
+      openModal(`${T.game} · ${T.statsOpen}`, body, 420);
+    }
+
+    function render() {
+      document.querySelectorAll("[data-player]").forEach(btn => btn.classList.toggle("selected", Number(btn.dataset.player) === state.currentPlayer));
+      topButton.classList.toggle("hidden-top", state.panel !== "closed");
+      lobbyFrame.classList.toggle("hidden", state.panel !== "lobby");
+      tableFrame.classList.toggle("hidden", state.panel !== "table");
+      if (state.panel === "lobby") renderLobby();
+      if (state.panel === "table") renderTable();
+    }
+
+    setInterval(() => {
+      const hasVisibleTimer = Object.values(state.tables).some(g => g.phase === "playing" && g.turn > 0 && g.turnDue);
+      if (hasVisibleTimer && state.panel === "table") render();
+    }, 1000);
+
+    document.body.addEventListener("click", event => {
+      const playerBtn = event.target.closest("[data-player]");
+      if (playerBtn) {
+        state.currentPlayer = Number(playerBtn.dataset.player);
+        state.panel = currentGame() ? "table" : "lobby";
+        render();
+        return;
+      }
+      const btn = event.target.closest("[data-action]");
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const tid = Number(btn.dataset.tid);
+      const g = currentGame() || state.tables[tid];
+      if (action === "close") state.panel = "closed";
+      if (action === "back") state.panel = "lobby";
+      if (action === "rules") return showRules();
+      if (action === "notice") return showNotice();
+      if (action === "stats") return showStats();
+      if (action === "modal-close") return closeModal();
+      if (action === "open") return createTable();
+      if (action === "join") return joinTable(tid);
+      if (action === "view") { state.viewTid = tid; state.panel = "table"; }
+      if (action === "ready" && g) return setReady(g, true);
+      if (action === "unready" && g) return setReady(g, false);
+      if (action === "add-ai" && g) return addAi(g);
+      if (action === "kick-ai" && g) return kickAi(g);
+      if (action === "again" && g) return resetGame(g);
+      if (action === "leave") return leaveTable();
+      if (action === "cell" && g) return move(g, Number(btn.dataset.pos));
+      render();
+    });
+
+    topButton.addEventListener("click", () => {
+      state.panel = state.panel === "closed" ? (currentGame() ? "table" : "lobby") : "closed";
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
